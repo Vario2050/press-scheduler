@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Press Scheduling Optimization Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+            margin-bottom: 20px;
+            font-family: monospace;
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        #optimizeBtn {
+            background-color: #2196F3;
+        }
+        #clearBtn {
+            background-color: #f44336;
+        }
+        #exportBtn {
+            background-color: #ff9800;
+        }
+        .result {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+            position: sticky;
+            top: 0;
+        }
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        .same-substrate {
+            background-color: #d4edda;
+        }
+        .same-customer {
+            background-color: #d1ecf1;
+        }
+        .same-width {
+            background-color: #fff3cd;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            margin-right: 5px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+        }
+        .tab.active {
+            background-color: white;
+            font-weight: bold;
+            border-bottom: 2px solid white;
+            margin-bottom: -1px;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            flex: 1;
+            min-width: 200px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #2196F3;
+        }
+        .positive {
+            color: #4CAF50;
+        }
+        .negative {
+            color: #f44336;
+        }
+        .legend {
+            margin-bottom: 15px;
+        }
+        .legend-item {
+            display: inline-block;
+            padding: 5px 10px;
+            margin-right: 10px;
+            border-radius: 4px;
+        }
+        .press-selector {
+            margin-bottom: 15px;
+        }
+        #exportArea {
+            display: none;
+        }
+        .parameters {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        label {
+            margin-right: 15px;
+            font-weight: bold;
+        }
+        input[type="number"] {
+            width: 60px;
+            padding: 5px;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Press Scheduling Optimization Tool</h1>
+        <p>Optimize label printing schedules to minimize changeovers and maximize efficiency.</p>
+        
+        <div>
+            <h2>Input Schedule Data</h2>
+            <textarea id="inputData" placeholder="Paste your tab-delimited schedule data here..."></textarea>
+        </div>
+        
+        <div>
+            <button id="analyzeBtn">Analyze Schedule Data</button>
+            <button id="optimizeBtn" disabled>Optimize Schedule</button>
+            <button id="exportBtn" disabled>Export Optimized Schedule</button>
+            <button id="clearBtn">Clear Data</button>
+        </div>
+
+        <div class="parameters" id="optimizationParams">
+            <h2>Optimization Parameters</h2>
+            <div>
+                <label>Substrate Changeover Time (min): <input type="number" id="substrateTime" value="20"></label>
+                <label>Customer Changeover Time (min): <input type="number" id="customerTime" value="5"></label>
+                <label>Width Changeover Time (min): <input type="number" id="widthTime" value="10"></label>
+            </div>
+        </div>
+        
+        <div id="resultsTabs" class="tabs" style="display:none;">
+            <div class="tab active" data-tab="summary">Summary</div>
+            <div class="tab" data-tab="original">Original Schedule</div>
+            <div class="tab" data-tab="optimized">Optimized Schedule</div>
+        </div>
+
+        <div id="summary" class="tab-content active">
+            <div class="result">
+                <h2>Analysis Summary</h2>
+                <div id="analysisSummary">Paste data and click "Analyze Schedule Data" to begin.</div>
+                
+                <div id="optimizationStats" style="display:none;">
+                    <h2>Optimization Results</h2>
+                    <div class="stats" id="statsContainer">
+                        <!-- Stats will be inserted here -->
+                    </div>
+                    <div id="optimizationSummary"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="original" class="tab-content">
+            <div class="result">
+                <h2>Original Schedule</h2>
+                <div class="press-selector" id="originalPressSelector">
+                    <!-- Press selector will be inserted here -->
+                </div>
+                <div class="legend">
+                    <div class="legend-item same-substrate">Same Substrate</div>
+                    <div class="legend-item same-customer">Same Customer</div>
+                    <div class="legend-item same-width">Same Width</div>
+                </div>
+                <div class="table-container">
+                    <table id="originalTable">
+                        <thead>
+                            <tr>
+                                <th>Job ID</th>
+                                <th>Date</th>
+                                <th>Start Time</th>
+                                <th>Duration</th>
+                                <th>Customer</th>
+                                <th>Substrate</th>
+                                <th>Width</th>
+                                <th>Changeover</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Original schedule will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div id="optimized" class="tab-content">
+            <div class="result">
+                <h2>Optimized Schedule</h2>
+                <div class="press-selector" id="optimizedPressSelector">
+                    <!-- Press selector will be inserted here -->
+                </div>
+                <div class="legend">
+                    <div class="legend-item same-substrate">Same Substrate</div>
+                    <div class="legend-item same-customer">Same Customer</div>
+                    <div class="legend-item same-width">Same Width</div>
+                </div>
+                <div class="table-container">
+                    <table id="optimizedTable">
+                        <thead>
+                            <tr>
+                                <th>Job ID</th>
+                                <th>Date</th>
+                                <th>Start Time</th>
+                                <th>Duration</th>
+                                <th>Customer</th>
+                                <th>Substrate</th>
+                                <th>Width</th>
+                                <th>Changeover</th>
+                                <th>Savings</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Optimized schedule will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <textarea id="exportArea"></textarea>
+    </div>
+
+    <script>
+        // DOM elements
+        const inputDataEl = document.getElementById('inputData');
+        const analyzeBtnEl = document.getElementById('analyzeBtn');
+        const optimizeBtnEl = document.getElementById('optimizeBtn');
+        const exportBtnEl = document.getElementById('exportBtn');
+        const clearBtnEl = document.getElementById('clearBtn');
+        const analysisSummaryEl = document.getElementById('analysisSummary');
+        const optimizationStatsEl = document.getElementById('optimizationStats');
+        const statsContainerEl = document.getElementById('statsContainer');
+        const optimizationSummaryEl = document.getElementById('optimizationSummary');
+        const originalTableEl = document.getElementById('originalTable').querySelector('tbody');
+        const optimizedTableEl = document.getElementById('optimizedTable').querySelector('tbody');
+        const originalPressSelectorEl = document.getElementById('originalPressSelector');
+        const optimizedPressSelectorEl = document.getElementById('optimizedPressSelector');
+        const resultTabsEl = document.getElementById('resultsTabs');
+        const exportAreaEl = document.getElementById('exportArea');
+        const substrateTimeEl = document.getElementById('substrateTime');
+        const customerTimeEl = document.getElementById('customerTime');
+        const widthTimeEl = document.getElementById('widthTime');
+        
+        // Data storage
+        let originalJobs = [];
+        let optimizedJobs = [];
+        let pressTypes = [];
+        let currentOriginalPress = "";
+        let currentOptimizedPress = "";
+        
+        // Tab functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+        
+        // Get changeover times
+        function getChangeoverTimes() {
+            return {
+                substrate: parseInt(substrateTimeEl.value) || 20,
+                customer: parseInt(customerTimeEl.value) || 5,
+                width: parseInt(widthTimeEl.value) || 10
+            };
+        }
+        
+        // Parse job duration to minutes
+        function parseDuration(duration) {
+            if (!duration) return 0;
+            
+            const parts = duration.split(':');
+            if (parts.length === 2) {
+                return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+            } else if (parts.length === 3) {
+                return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+            }
+            return 0;
+        }
+        
+        // Format duration for display
+        function formatDuration(minutes) {
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            return `${hours}:${mins.toString().padStart(2, '0')}`;
+        }
+        
+        // Parse schedule data
+        function parseScheduleData(data) {
+            const lines = data.split('\n');
+            const jobs = [];
+            pressTypes = [];
+            
+            let currentPress = "";
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (line === '') continue;
+                
+                // Check if line is a press header
+                if (line.includes('_SMAG') || line.includes('_ROTO') || line.includes('_MA_P7') || line.includes('_T-180')) {
+                    currentPress = line.trim();
+                    
+                    // Add to press types if not already there
+                    if (!pressTypes.includes(currentPress)) {
+                        pressTypes.push(currentPress);
+                    }
+                    
+                    continue;
+                }
+                
+                // Skip header row
+                if (line.startsWith('Date') || line.startsWith('Calculation')) continue;
+                
+                const fields = line.split('\t');
+                
+                // Only process lines that look like job data
+                if (fields.length > 10) {
+                    // Check if it has a date that looks valid
+                    const hasDate = fields[0] && fields[0].includes('/');
+                    
+                    if (hasDate) {
+                        const job = {
+                            press: currentPress,
+                            date: fields[0],
+                            startTime: fields[1] || '',
+                            duration: fields[2] || '',
+                            durationMinutes: parseDuration(fields[2]),
+                            jobId: fields[3] || '',
+                            customer: fields[7] || '',
+                            description: fields[8] || '',
+                            paperWidth: fields[20] || '',
+                            substrate: fields[21] || '',
+                            fullSubstrate: fields[22] || '',
+                            optimized: false
+                        };
+                        jobs.push(job);
+                    }
+                }
+            }
+            
+            return jobs;
+        }
+        
+        // Calculate changeover time between jobs
+        function calculateChangeover(prevJob, currentJob) {
+            if (!prevJob) return 0;
+            
+            const changeoverTime = getChangeoverTimes();
+            let changeoverMinutes = 0;
+            
+            // Check substrate change
+            if (prevJob.substrate !== currentJob.substrate) {
+                changeoverMinutes += changeoverTime.substrate;
+            }
+            
+            // Check customer change (only if substrate is the same)
+            else if (prevJob.customer !== currentJob.customer) {
+                changeoverMinutes += changeoverTime.customer;
+            }
+            
+            // Check width change (regardless of substrate)
+            if (prevJob.paperWidth !== currentJob.paperWidth) {
+                changeoverMinutes += changeoverTime.width;
+            }
+            
+            return changeoverMinutes;
+        }
+        
+        // Get changeover type between jobs
+        function getChangeoverType(prevJob, currentJob) {
+            if (!prevJob) return 'none';
+            
+            // Same substrate is the most important factor
+            if (prevJob.substrate === currentJob.substrate) {
+                // Same customer and substrate
+                if (prevJob.customer === currentJob.customer) {
+                    return 'low';
+                }
+                // Same substrate, different customer
+                return 'medium';
+            }
+            
+            // Different substrate
+            return 'high';
+        }
+        
+        // Count job changeovers
+        function countChangeovers(jobs) {
+            const pressDayJobs = {};
+            
+            // Group jobs by press and day
+            jobs.forEach(job => {
+                const key = `${job.press}_${job.date}`;
+                if (!pressDayJobs[key]) {
+                    pressDayJobs[key] = [];
+                }
+                pressDayJobs[key].push(job);
+            });
+            
+            let substrateChanges = 0;
+            let customerChanges = 0;
+            let widthChanges = 0;
+            let totalChangeoverMinutes = 0;
+            
+            // Count changes within each group
+            Object.values(pressDayJobs).forEach(jobGroup => {
+                let prevJob = null;
+                
+                jobGroup.forEach(job => {
+                    if (prevJob) {
+                        // Calculate changeover time
+                        const changeoverMinutes = calculateChangeover(prevJob, job);
+                        totalChangeoverMinutes += changeoverMinutes;
+                        
+                        // Count substrate changes
+                        if (prevJob.substrate !== job.substrate) {
+                            substrateChanges++;
+                        }
+                        // Count customer changes if substrate is the same
+                        else if (prevJob.customer !== job.customer) {
+                            customerChanges++;
+                        }
+                        
+                        // Count width changes
+                        if (prevJob.paperWidth !== job.paperWidth) {
+                            widthChanges++;
+                        }
+                    }
+                    
+                    prevJob = job;
+                });
+            });
+            
+            return {
+                substrateChanges,
+                customerChanges,
+                widthChanges,
+                totalChanges: substrateChanges + customerChanges,
+                totalChangeoverMinutes
+            };
+        }
+        
+        // Create press selectors
+        function createPressSelectors() {
+            // Create original schedule press selector
+            originalPressSelectorEl.innerHTML = '<label>Select Press: <select id="originalPressSelect"></select></label>';
+            const originalSelect = document.getElementById('originalPressSelect');
+            
+            // Add "All Presses" option
+            const allOption = document.createElement('option');
+            allOption.value = "all";
+            allOption.textContent = "All Presses";
+            originalSelect.appendChild(allOption);
+            
+            // Add each press as an option
+            pressTypes.forEach(press => {
+                const option = document.createElement('option');
+                option.value = press;
+                option.textContent = press;
+                originalSelect.appendChild(option);
+            });
+            
+            // Set default selection
+            currentOriginalPress = "all";
+            originalSelect.value = currentOriginalPress;
+            
+            // Add change event
+            originalSelect.addEventListener('change', () => {
+                currentOriginalPress = originalSelect.value;
+                displayOriginalSchedule();
+            });
+            
+            // Create optimized schedule press selector
+            optimizedPressSelectorEl.innerHTML = '<label>Select Press: <select id="optimizedPressSelect"></select></label>';
+            const optimizedSelect = document.getElementById('optimizedPressSelect');
+            
+            // Add "All Presses" option
+            const allOptOption = document.createElement('option');
+            allOptOption.value = "all";
+            allOptOption.textContent = "All Presses";
+            optimizedSelect.appendChild(allOptOption);
+            
+            // Add each press as an option
+            pressTypes.forEach(press => {
+                const option = document.createElement('option');
+                option.value = press;
+                option.textContent = press;
+                optimizedSelect.appendChild(option);
+            });
+            
+            // Set default selection
+            currentOptimizedPress = "all";
+            optimizedSelect.value = currentOptimizedPress;
+            
+            // Add change event
+            optimizedSelect.addEventListener('change', () => {
+                currentOptimizedPress = optimizedSelect.value;
+                displayOptimizedSchedule();
+            });
+        }
+        
+        // Display original schedule
+        function displayOriginalSchedule() {
+            originalTableEl.innerHTML = '';
+            
+            // Filter jobs by selected press
+            let displayJobs;
+            if (currentOriginalPress === "all") {
+                displayJobs = originalJobs;
+            } else {
+                displayJobs = originalJobs.filter(job => job.press === currentOriginalPress);
+            }
+            
+            // Sort by press, date, and start time
+            displayJobs.sort((a, b) => {
+                if (a.press !== b.press) {
+                    return a.press.localeCompare(b.press);
+                }
+                if (a.date !== b.date) {
+                    return a.date.localeCompare(b.date);
+                }
+                return a.startTime.localeCompare(b.startTime);
+            });
+            
+            let currentPressDate = "";
+            let prevJob = null;
+            
+            displayJobs.forEach(job => {
+                const tr = document.createElement('tr');
+                
+                // Add a press/date separator
+                const pressDate = `${job.press} - ${job.date}`;
+                if (pressDate !== currentPressDate) {
+                    currentPressDate = pressDate;
+                    prevJob = null;
+                    
+                    const separator = document.createElement('tr');
+                    separator.innerHTML = `<td colspan="8" style="background-color: #e9ecef; font-weight: bold;">${pressDate}</td>`;
+                    originalTableEl.appendChild(separator);
+                }
+                
+                // Calculate changeover time from previous job
+                const changeoverMinutes = calculateChangeover(prevJob, job);
+                const changeoverType = getChangeoverType(prevJob, job);
+                
+                // Set row class based on grouping
+                if (prevJob && prevJob.substrate === job.substrate) {
+                    tr.classList.add('same-substrate');
+                } else if (prevJob && prevJob.customer === job.customer) {
+                    tr.classList.add('same-customer');
+                } else if (prevJob && prevJob.paperWidth === job.paperWidth) {
+                    tr.classList.add('same-width');
+                }
+                
+                // Create changeover indicator
+                let changeoverHtml = '';
+                if (changeoverMinutes > 0) {
+                    const indicatorClass = changeoverType === 'low' ? 'success' : 
+                                          changeoverType === 'medium' ? 'warning' : 'danger';
+                    changeoverHtml = `${changeoverMinutes} min`;
+                }
+                
+                tr.innerHTML = `
+                    <td>${job.jobId}</td>
+                    <td>${job.date}</td>
+                    <td>${job.startTime}</td>
+                    <td>${job.duration}</td>
+                    <td>${job.customer}</td>
+                    <td title="${job.fullSubstrate}">${job.substrate}</td>
+                    <td>${job.paperWidth}</td>
+                    <td>${changeoverHtml}</td>
+                `;
+                
+                originalTableEl.appendChild(tr);
+                
+                // Set this job as previous for next iteration
+                prevJob = job;
+            });
+        }
+        
+        // Display optimized schedule
+        function displayOptimizedSchedule() {
+            optimizedTableEl.innerHTML = '';
+            
+            // Filter jobs by selected press
+            let displayJobs;
+            if (currentOptimizedPress === "all") {
+                displayJobs = optimizedJobs;
+            } else {
+                displayJobs = optimizedJobs.filter(job => job.press === currentOptimizedPress);
+            }
+            
+            // Sort by press, date, and start time
+            displayJobs.sort((a, b) => {
+                if (a.press !== b.press) {
+                    return a.press.localeCompare(b.press);
+                }
+                if (a.date !== b.date) {
+                    return a.date.localeCompare(b.date);
+                }
+                return a.startTime.localeCompare(b.startTime);
+            });
+            
+            let currentPressDate = "";
+            let prevJob = null;
+            
+            displayJobs.forEach(job => {
+                const tr = document.createElement('tr');
+                
+                // Add a press/date separator
+                const pressDate = `${job.press} - ${job.date}`;
+                if (pressDate !== currentPressDate) {
+                    currentPressDate = pressDate;
+                    prevJob = null;
+                    
+                    const separator = document.createElement('tr');
+                    separator.innerHTML = `<td colspan="9" style="background-color: #e9ecef; font-weight: bold;">${pressDate}</td>`;
+                    optimizedTableEl.appendChild(separator);
+                }
+                
+                // Calculate changeover time from previous job
+                const changeoverMinutes = calculateChangeover(prevJob, job);
+                const changeoverType = getChangeoverType(prevJob, job);
+                
+                // Find original position of this job
+                const originalJobIndex = originalJobs.findIndex(j => 
+                    j.press === job.press && j.date === job.date && j.jobId === job.jobId);
+                
+                // Find original previous job
+                let originalPrevJobIndex = -1;
+                if (originalJobIndex > 0) {
+                    // Look for the previous job with the same press and date
+                    for (let i = originalJobIndex - 1; i >= 0; i--) {
+                        if (originalJobs[i].press === job.press && originalJobs[i].date === job.date) {
+                            originalPrevJobIndex = i;
+                            break;
+                        }
+                    }
+                }
+                
+                // Calculate original changeover time
+                let originalChangeoverMinutes = 0;
+                if (originalPrevJobIndex >= 0) {
+                    originalChangeoverMinutes = calculateChangeover(
+                        originalJobs[originalPrevJobIndex], originalJobs[originalJobIndex]);
+                }
+                
+                // Calculate time saved
+                const timeSaved = originalChangeoverMinutes - changeoverMinutes;
+                
+                // Set row class based on grouping
+                if (prevJob && prevJob.substrate === job.substrate) {
+                    tr.classList.add('same-substrate');
+                } else if (prevJob && prevJob.customer === job.customer) {
+                    tr.classList.add('same-customer');
+                } else if (prevJob && prevJob.paperWidth === job.paperWidth) {
+                    tr.classList.add('same-width');
+                }
+                
+                // Create changeover indicator
+                let changeoverHtml = '';
+                if (changeoverMinutes > 0) {
+                    const indicatorClass = changeoverType === 'low' ? 'success' : 
+                                          changeoverType === 'medium' ? 'warning' : 'danger';
+                    changeoverHtml = `${changeoverMinutes} min`;
+                }
+                
+                // Create savings indicator
+                let savingsHtml = '';
+                if (timeSaved > 0) {
+                    savingsHtml = `<span style="color: green;">-${timeSaved} min</span>`;
+                } else if (timeSaved < 0) {
+                    savingsHtml = `<span style="color: red;">+${Math.abs(timeSaved)} min</span>`;
+                }
+                
+                tr.innerHTML = `
+                    <td>${job.jobId}</td>
+                    <td>${job.date}</td>
+                    <td>${job.startTime}</td>
+                    <td>${job.duration}</td>
+                    <td>${job.customer}</td>
+                    <td title="${job.fullSubstrate}">${job.substrate}</td>
+                    <td>${job.paperWidth}</td>
+                    <td>${changeoverHtml}</td>
+                    <td>${savingsHtml}</td>
+                `;
+                
+                optimizedTableEl.appendChild(tr);
+                
+                // Set this job as previous for next iteration
+                prevJob = job;
+            });
+        }
+        
+        // Display press statistics
+        function createStatsSummary(originalJobs, optimizedJobs) {
+            const changeoverTime = getChangeoverTimes();
+            
+            // Calculate original statistics
+            const originalStats = countChangeovers(originalJobs);
+            
+            // Calculate optimized statistics
+            const optimizedStats = countChangeovers(optimizedJobs);
+            
+            // Calculate time savings
+            const substrateReduction = originalStats.substrateChanges - optimizedStats.substrateChanges;
+            const customerReduction = originalStats.customerChanges - optimizedStats.customerChanges;
+            const widthReduction = originalStats.widthChanges - optimizedStats.widthChanges;
+            
+            const substrateSavings = substrateReduction * changeoverTime.substrate;
+            const customerSavings = customerReduction * changeoverTime.customer;
+            const widthSavings = widthReduction * changeoverTime.width;
+            
+            const totalSavings = substrateSavings + customerSavings + widthSavings;
+            
+            const totalTimeOriginal = originalStats.totalChangeoverMinutes;
+            const totalTimeOptimized = optimizedStats.totalChangeoverMinutes;
+            
+            // Calculate percentage reduction
+            let percentReduction = 0;
+            if (totalTimeOriginal > 0) {
+                percentReduction = Math.round((totalSavings / totalTimeOriginal) * 100);
+            }
+            
+            // Create stat cards
+            statsContainerEl.innerHTML = `
+                <div class="stat-card">
+                    <div>Changeover Time Reduction</div>
+                    <div class="stat-value">${percentReduction}%</div>
+                </div>
+                <div class="stat-card">
+                    <div>Setup Time Saved</div>
+                    <div class="stat-value">${totalSavings} min</div>
+                </div>
+                <div class="stat-card">
+                    <div>Substrate Changes</div>
+                    <div class="stat-value">${optimizedStats.substrateChanges} <span class="${substrateReduction >= 0 ? 'positive' : 'negative'}">(${substrateReduction >= 0 ? '-' : '+'}${Math.abs(substrateReduction)})</span></div>
+                </div>
+                <div class="stat-card">
+                    <div>Customer Changes</div>
+                    <div class="stat-value">${optimizedStats.customerChanges} <span class="${customerReduction >= 0 ? 'positive' : 'negative'}">(${customerReduction >= 0 ? '-' : '+'}${Math.abs(customerReduction)})</span></div>
+                </div>
+            `;
+            
+            // Create summary text
+            optimizationSummaryEl.innerHTML = `
+                <h3>Detailed Savings Breakdown</h3>
+                <ul>
+                    <li><strong>Substrate Changes:</strong> ${originalStats.substrateChanges} → ${optimizedStats.substrateChanges} (${substrateReduction >= 0 ? 'Saved' : 'Added'} ${Math.abs(substrateReduction)} changes = ${Math.abs(substrateSavings)} minutes)</li>
+                    <li><strong>Customer Changes:</strong> ${originalStats.customerChanges} → ${optimizedStats.customerChanges} (${customerReduction >= 0 ? 'Saved' : 'Added'} ${Math.abs(customerReduction)} changes = ${Math.abs(customerSavings)} minutes)</li>
+                    <li><strong>Width Changes:</strong> ${originalStats.widthChanges} → ${optimizedStats.widthChanges} (${widthReduction >= 0 ? 'Saved' : 'Added'} ${Math.abs(widthReduction)} changes = ${Math.abs(widthSavings)} minutes)</li>
+                    <li><strong>Total Changeover Time:</strong> ${totalTimeOriginal} → ${totalTimeOptimized} minutes</li>
+                    <li><strong>Net Time Saved:</strong> ${totalSavings} minutes (${Math.floor(totalSavings/60)} hours and ${totalSavings % 60} minutes)</li>
+                </ul>
+                <h3>Optimization Method</h3>
+                <p>Jobs were grouped by press and date, then sorted by substrate, customer, and width to minimize changeovers.</p>
+                <p>For each press and date, jobs with the same substrate were grouped together to minimize substrate changes, which have the highest setup time (${changeoverTime.substrate} minutes each).</p>
+                <p>Within each substrate group, jobs were further sorted by customer and width to minimize these secondary changeovers.</p>
+            `;
+        }
+        
+        // Optimize schedule
+        function optimizeSchedule(jobs) {
+            // Clone jobs to avoid modifying originals
+            const optimizedJobs = JSON.parse(JSON.stringify(jobs));
+            
+            // Organize by press and date
+            const pressDayJobs = {};
+            
+            // Group jobs by press and day
+            optimizedJobs.forEach(job => {
+                const key = `${job.press}_${job.date}`;
+                if (!pressDayJobs[key]) {
+                    pressDayJobs[key] = [];
+                }
+                pressDayJobs[key].push(job);
+            });
+            
+            // Optimize each group
+            Object.keys(pressDayJobs).forEach(key => {
+                const jobGroup = pressDayJobs[key];
+                
+                // Sort by substrate, customer, and width to minimize changeovers
+                jobGroup.sort((a, b) => {
+                    // First by substrate
+                    if (a.substrate < b.substrate) return -1;
+                    if (a.substrate > b.substrate) return 1;
+                    
+                    // Then by customer within same substrate
+                    if (a.customer < b.customer) return -1;
+                    if (a.customer > b.customer) return 1;
+                    
+                    // Then by width
+                    if (a.paperWidth < b.paperWidth) return -1;
+                    if (a.paperWidth > b.paperWidth) return 1;
+                    
+                    return 0;
+                });
+                
+                // Mark as optimized
+                jobGroup.forEach(job => {
+                    job.optimized = true;
+                });
+            });
+            
+            // Flatten back to a single array
+            const result = [];
+            Object.values(pressDayJobs).forEach(group => {
+                result.push(...group);
+            });
+            
+            return result;
+        }
+        
+        // Generate exportable schedule
+        function generateExportSchedule(jobs) {
+            // Sort by press, date, and start time
+            const sortedJobs = [...jobs];
+            sortedJobs.sort((a, b) => {
+                if (a.press !== b.press) {
+                    return a.press.localeCompare(b.press);
+                }
+                if (a.date !== b.date) {
+                    return a.date.localeCompare(b.date);
+                }
+                return a.startTime.localeCompare(b.startTime);
+            });
+            
+            // Group by press
+            const pressBuckets = {};
+            pressTypes.forEach(press => {
+                pressBuckets[press] = sortedJobs.filter(job => job.press === press);
+            });
+            
+            // Create export lines
+            const lines = [];
+            pressTypes.forEach(press => {
+                const pressJobs = pressBuckets[press];
+                
+                // Add press header
+                lines.push(press);
+                
+                // Add headers
+                lines.push("Date\tStart Time\tDuration\tJob ID\tCustomer\tSubstrate\tWidth");
+                
+                // Add jobs
+                pressJobs.forEach(job => {
+                    const fields = [
+                        job.date,
+                        job.startTime,
+                        job.duration,
+                        job.jobId,
+                        job.customer,
+                        job.substrate,
+                        job.paperWidth
+                    ];
+                    
+                    lines.push(fields.join('\t'));
+                });
+                
+                // Add empty line between presses
+                lines.push('');
+            });
+            
+            return lines.join('\n');
+        }
+        
+        // Create summary analysis
+        function createAnalysisSummary(jobs) {
+            const stats = countChangeovers(jobs);
+            const changeoverTime = getChangeoverTimes();
+            
+            // Group by press
+            const pressJobs = {};
+            pressTypes.forEach(press => {
+                pressJobs[press] = jobs.filter(job => job.press === press);
+            });
+            
+            // Generate HTML
+            let html = `
+                <div class="stats">
+                    <div class="stat-card">
+                        <div>Total Jobs</div>
+                        <div class="stat-value">${jobs.length}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div>Total Changeovers</div>
+                        <div class="stat-value">${stats.totalChanges}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div>Substrate Changes</div>
+                        <div class="stat-value">${stats.substrateChanges}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div>Customer Changes</div>
+                        <div class="stat-value">${stats.customerChanges}</div>
+                    </div>
+                </div>
+                
+                <h3>Changeover Time Analysis</h3>
+                <p>Based on your parameters:</p>
+                <ul>
+                    <li>Substrate changes (${stats.substrateChanges} × ${changeoverTime.substrate} min) = ${stats.substrateChanges * changeoverTime.substrate} minutes</li>
+                    <li>Customer changes (${stats.customerChanges} × ${changeoverTime.customer} min) = ${stats.customerChanges * changeoverTime.customer} minutes</li>
+                    <li>Width changes (${stats.widthChanges} × ${changeoverTime.width} min) = ${stats.widthChanges * changeoverTime.width} minutes</li>
+                </ul>
+                <p>Total changeover time: ${stats.totalChangeoverMinutes} minutes (${Math.floor(stats.totalChangeoverMinutes/60)} hours and ${stats.totalChangeoverMinutes % 60} minutes)</p>
+                
+                <h3>Press Distribution</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Press</th>
+                            <th>Jobs</th>
+                            <th>Changeovers</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            // Add row for each press
+            Object.entries(pressJobs).forEach(([press, pressJobsList]) => {
+                // Count changeovers for this press
+                const pressStats = countChangeovers(pressJobsList);
+                
+                html += `
+                    <tr>
+                        <td>${press}</td>
+                        <td>${pressJobsList.length}</td>
+                        <td>${pressStats.totalChanges}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                    </tbody>
+                </table>
+                
+                <h3>Optimization Opportunities</h3>
+                <p>There are potential opportunities to reduce changeover time by reordering jobs. Click "Optimize Schedule" to see the optimized schedule.</p>
+            `;
+            
+            return html;
+        }
+        
+        // Event Handlers
+        analyzeBtnEl.addEventListener('click', () => {
+            const data = inputDataEl.value;
+            if (!data) {
+                alert('Please paste schedule data first!');
+                return;
+            }
+            
+            // Parse data
+            originalJobs = parseScheduleData(data);
+            
+            if (originalJobs.length === 0) {
+                alert('No valid job data found. Please check your input.');
+                return;
+            }
+            
+            // Display analysis
+            analysisSummaryEl.innerHTML = createAnalysisSummary(originalJobs);
+            
+            // Create press selectors
+            createPressSelectors();
+            
+            // Display original schedule
+            displayOriginalSchedule();
+            
+            // Show tabs
+            resultTabsEl.style.display = 'flex';
+            
+            // Enable optimize button
+            optimizeBtnEl.disabled = false;
+        });
+        
+        optimizeBtnEl.addEventListener('click', () => {
+            // Make a copy of original jobs for reference
+            const jobsCopy = JSON.parse(JSON.stringify(originalJobs));
+            
+            // Optimize schedule
+            optimizedJobs = optimizeSchedule(jobsCopy);
+            
+            // Display optimized schedule
+            displayOptimizedSchedule();
+            
+            // Show optimization stats
+            optimizationStatsEl.style.display = 'block';
+            
+            // Create stats summary
+            createStatsSummary(originalJobs, optimizedJobs);
+            
+            // Enable export button
+            exportBtnEl.disabled = false;
+            
+            // Switch to summary tab
+            document.querySelector('.tab[data-tab="summary"]').click();
+        });
+        
+        exportBtnEl.addEventListener('click', () => {
+            // Generate export data
+            exportAreaEl.value = generateExportSchedule(optimizedJobs);
+            
+            // Copy to clipboard
+            exportAreaEl.style.display = 'block';
+            exportAreaEl.select();
+            document.execCommand('copy');
+            exportAreaEl.style.display = 'none';
+            
+            alert('Optimized schedule copied to clipboard!');
+        });
+        
+        clearBtnEl.addEventListener('click', () => {
+            inputDataEl.value = '';
+            analysisSummaryEl.innerHTML = 'Paste data and click "Analyze Schedule Data" to begin.';
+            optimizationStatsEl.style.display = 'none';
+            resultTabsEl.style.display = 'none';
+            optimizeBtnEl.disabled = true;
+            exportBtnEl.disabled = true;
+            originalJobs = [];
+            optimizedJobs = [];
+        });
+    </script>
+</body>
+</html>
