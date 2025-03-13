@@ -77,14 +77,26 @@
             overflow-y: auto;
             margin-bottom: 20px;
         }
-        .same-substrate {
+        .same-die {
             background-color: #d4edda;
         }
-        .same-customer {
+        .same-substrate {
             background-color: #d1ecf1;
         }
-        .same-width {
+        .same-plates {
             background-color: #fff3cd;
+        }
+        .single-color {
+            border-left: 4px solid #4CAF50;
+        }
+        .four-color {
+            border-left: 4px solid #2196F3;
+        }
+        .multi-color {
+            border-left: 4px solid #FFC107;
+        }
+        .complex-color {
+            border-left: 4px solid #F44336;
         }
         .tabs {
             display: flex;
@@ -147,6 +159,7 @@
             padding: 5px 10px;
             margin-right: 10px;
             border-radius: 4px;
+            margin-bottom: 5px;
         }
         .press-selector {
             margin-bottom: 15px;
@@ -170,12 +183,43 @@
             padding: 5px;
             margin-right: 5px;
         }
+        .urgent {
+            background-color: #ffebee;
+        }
+        .approach-due {
+            background-color: #fff8e1;
+        }
+        .ship-date {
+            font-weight: bold;
+        }
+        .color-info {
+            font-weight: bold;
+        }
+        .dot {
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .color-1 {
+            background-color: #4CAF50;
+        }
+        .color-4 {
+            background-color: #2196F3;
+        }
+        .color-multi {
+            background-color: #FFC107;
+        }
+        .color-complex {
+            background-color: #F44336;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Press Scheduling Optimization Tool</h1>
-        <p>Optimize label printing schedules to minimize changeovers and maximize efficiency.</p>
+        <p>Optimize label printing schedules to minimize changeovers while respecting ship dates.</p>
         
         <div>
             <h2>Input Schedule Data</h2>
@@ -192,9 +236,13 @@
         <div class="parameters" id="optimizationParams">
             <h2>Optimization Parameters</h2>
             <div>
-                <label>Substrate Changeover Time (min): <input type="number" id="substrateTime" value="20"></label>
-                <label>Customer Changeover Time (min): <input type="number" id="customerTime" value="5"></label>
-                <label>Width Changeover Time (min): <input type="number" id="widthTime" value="10"></label>
+                <label>Die Change Time (min): <input type="number" id="dieTime" value="15"></label>
+                <label>Material Change Time (min): <input type="number" id="materialTime" value="10"></label>
+                <label>Color Setup Time per Cylinder (min): <input type="number" id="colorTime" value="3"></label>
+            </div>
+            <div style="margin-top: 10px;">
+                <label><input type="checkbox" id="prioritizeShipDates" checked> Prioritize ship dates</label>
+                <label><input type="checkbox" id="groupByDie" checked> Group by Die ID</label>
             </div>
         </div>
         
@@ -226,9 +274,12 @@
                     <!-- Press selector will be inserted here -->
                 </div>
                 <div class="legend">
-                    <div class="legend-item same-substrate">Same Substrate</div>
-                    <div class="legend-item same-customer">Same Customer</div>
-                    <div class="legend-item same-width">Same Width</div>
+                    <div class="legend-item same-die">Same Die</div>
+                    <div class="legend-item same-substrate">Same Material</div>
+                    <div class="legend-item same-plates">Same Plate Count</div>
+                    <div class="legend-item" style="border-left: 4px solid #4CAF50; padding-left: 10px;">Single Color</div>
+                    <div class="legend-item" style="border-left: 4px solid #2196F3; padding-left: 10px;">4-Color Process</div>
+                    <div class="legend-item" style="border-left: 4px solid #FFC107; padding-left: 10px;">Multi-Color</div>
                 </div>
                 <div class="table-container">
                     <table id="originalTable">
@@ -236,11 +287,11 @@
                             <tr>
                                 <th>Job ID</th>
                                 <th>Date</th>
-                                <th>Start Time</th>
-                                <th>Duration</th>
-                                <th>Customer</th>
+                                <th>Ship Date</th>
+                                <th>Die ID</th>
                                 <th>Substrate</th>
-                                <th>Width</th>
+                                <th>Colors</th>
+                                <th>Customer</th>
                                 <th>Changeover</th>
                             </tr>
                         </thead>
@@ -259,9 +310,12 @@
                     <!-- Press selector will be inserted here -->
                 </div>
                 <div class="legend">
-                    <div class="legend-item same-substrate">Same Substrate</div>
-                    <div class="legend-item same-customer">Same Customer</div>
-                    <div class="legend-item same-width">Same Width</div>
+                    <div class="legend-item same-die">Same Die</div>
+                    <div class="legend-item same-substrate">Same Material</div>
+                    <div class="legend-item same-plates">Same Plate Count</div>
+                    <div class="legend-item" style="border-left: 4px solid #4CAF50; padding-left: 10px;">Single Color</div>
+                    <div class="legend-item" style="border-left: 4px solid #2196F3; padding-left: 10px;">4-Color Process</div>
+                    <div class="legend-item" style="border-left: 4px solid #FFC107; padding-left: 10px;">Multi-Color</div>
                 </div>
                 <div class="table-container">
                     <table id="optimizedTable">
@@ -269,11 +323,11 @@
                             <tr>
                                 <th>Job ID</th>
                                 <th>Date</th>
-                                <th>Start Time</th>
-                                <th>Duration</th>
-                                <th>Customer</th>
+                                <th>Ship Date</th>
+                                <th>Die ID</th>
                                 <th>Substrate</th>
-                                <th>Width</th>
+                                <th>Colors</th>
+                                <th>Customer</th>
                                 <th>Changeover</th>
                                 <th>Savings</th>
                             </tr>
@@ -306,9 +360,11 @@
         const optimizedPressSelectorEl = document.getElementById('optimizedPressSelector');
         const resultTabsEl = document.getElementById('resultsTabs');
         const exportAreaEl = document.getElementById('exportArea');
-        const substrateTimeEl = document.getElementById('substrateTime');
-        const customerTimeEl = document.getElementById('customerTime');
-        const widthTimeEl = document.getElementById('widthTime');
+        const dieTimeEl = document.getElementById('dieTime');
+        const materialTimeEl = document.getElementById('materialTime');
+        const colorTimeEl = document.getElementById('colorTime');
+        const prioritizeShipDatesEl = document.getElementById('prioritizeShipDates');
+        const groupByDieEl = document.getElementById('groupByDie');
         
         // Data storage
         let originalJobs = [];
@@ -316,6 +372,7 @@
         let pressTypes = [];
         let currentOriginalPress = "";
         let currentOptimizedPress = "";
+        const today = new Date();
         
         // Tab functionality
         document.querySelectorAll('.tab').forEach(tab => {
@@ -334,10 +391,43 @@
         // Get changeover times
         function getChangeoverTimes() {
             return {
-                substrate: parseInt(substrateTimeEl.value) || 20,
-                customer: parseInt(customerTimeEl.value) || 5,
-                width: parseInt(widthTimeEl.value) || 10
+                die: parseInt(dieTimeEl.value) || 15,
+                material: parseInt(materialTimeEl.value) || 10,
+                colorPerPlate: parseInt(colorTimeEl.value) || 3
             };
+        }
+        
+        // Parse date string (MM/DD/YYYY or MM/DD/YY)
+        function parseDate(dateStr) {
+            if (!dateStr) return null;
+            
+            // Try to parse the date
+            const parts = dateStr.split('/');
+            if (parts.length !== 3) return null;
+            
+            let year = parseInt(parts[2]);
+            // Adjust two-digit years
+            if (year < 100) {
+                year += year < 50 ? 2000 : 1900;
+            }
+            
+            // Month is 0-based in JavaScript Date
+            const month = parseInt(parts[0]) - 1;
+            const day = parseInt(parts[1]);
+            
+            return new Date(year, month, day);
+        }
+        
+        // Format date for display
+        function formatDate(date) {
+            if (!date) return '';
+            return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+        }
+        
+        // Calculate days between two dates
+        function daysBetween(date1, date2) {
+            const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
+            return Math.round(Math.abs((date1 - date2) / oneDay));
         }
         
         // Parse job duration to minutes
@@ -358,6 +448,54 @@
             const hours = Math.floor(minutes / 60);
             const mins = minutes % 60;
             return `${hours}:${mins.toString().padStart(2, '0')}`;
+        }
+        
+        // Get color complexity category
+        function getColorCategory(plateCount) {
+            if (!plateCount) return 'unknown';
+            const count = parseInt(plateCount);
+            
+            if (count === 1) return 'single'; // Single color
+            if (count === 4) return 'process'; // 4-color process
+            if (count > 4) return 'complex'; // Complex (more than 4 colors)
+            return 'multi'; // Multiple colors but not 4-color process
+        }
+        
+        // Get css class for color category
+        function getColorClass(category) {
+            switch(category) {
+                case 'single': return 'single-color';
+                case 'process': return 'four-color';
+                case 'multi': return 'multi-color';
+                case 'complex': return 'complex-color';
+                default: return '';
+            }
+        }
+        
+        // Format color info display
+        function formatColorInfo(plateCount) {
+            if (!plateCount) return 'Unknown';
+            
+            const count = parseInt(plateCount);
+            const category = getColorCategory(plateCount);
+            let colorDot = '';
+            
+            switch(category) {
+                case 'single':
+                    colorDot = '<span class="dot color-1"></span>';
+                    return `${colorDot} ${count} color`;
+                case 'process':
+                    colorDot = '<span class="dot color-4"></span>';
+                    return `${colorDot} 4C Process`;
+                case 'multi':
+                    colorDot = '<span class="dot color-multi"></span>';
+                    return `${colorDot} ${count} colors`;
+                case 'complex':
+                    colorDot = '<span class="dot color-complex"></span>';
+                    return `${colorDot} ${count} colors`;
+                default:
+                    return plateCount;
+            }
         }
         
         // Parse schedule data
@@ -398,17 +536,36 @@
                         const job = {
                             press: currentPress,
                             date: fields[0],
+                            dateObj: parseDate(fields[0]),
                             startTime: fields[1] || '',
                             duration: fields[2] || '',
                             durationMinutes: parseDuration(fields[2]),
                             jobId: fields[3] || '',
+                            shipmentDate: fields[4] || '',
+                            shipDateObj: parseDate(fields[4]),
+                            notes: fields[5] || '',
+                            status: fields[6] || '',
                             customer: fields[7] || '',
                             description: fields[8] || '',
+                            graphics: fields[9] || '',
+                            plates: fields[10] || '',
+                            plateCount: fields[19] || '0',
                             paperWidth: fields[20] || '',
                             substrate: fields[21] || '',
                             fullSubstrate: fields[22] || '',
+                            dieId: fields[17] || '',  // Die ID field
+                            colorCategory: getColorCategory(fields[19]),
                             optimized: false
                         };
+                        
+                        // Calculate urgency based on ship date
+                        if (job.shipDateObj) {
+                            const daysToShip = daysBetween(today, job.shipDateObj);
+                            job.daysToShip = daysToShip;
+                            job.isUrgent = daysToShip <= 3;
+                            job.isApproachingDue = daysToShip <= 7 && daysToShip > 3;
+                        }
+                        
                         jobs.push(job);
                     }
                 }
@@ -424,19 +581,28 @@
             const changeoverTime = getChangeoverTimes();
             let changeoverMinutes = 0;
             
-            // Check substrate change
+            // Check die change - highest priority
+            if (prevJob.dieId !== currentJob.dieId || prevJob.dieId === '' || currentJob.dieId === '') {
+                changeoverMinutes += changeoverTime.die;
+            }
+            
+            // Check material change
             if (prevJob.substrate !== currentJob.substrate) {
-                changeoverMinutes += changeoverTime.substrate;
+                changeoverMinutes += changeoverTime.material;
             }
             
-            // Check customer change (only if substrate is the same)
-            else if (prevJob.customer !== currentJob.customer) {
-                changeoverMinutes += changeoverTime.customer;
-            }
+            // Add time for color setup based on plate count differences
+            const prevPlateCount = parseInt(prevJob.plateCount) || 0;
+            const currentPlateCount = parseInt(currentJob.plateCount) || 0;
             
-            // Check width change (regardless of substrate)
-            if (prevJob.paperWidth !== currentJob.paperWidth) {
-                changeoverMinutes += changeoverTime.width;
+            // If going from simpler to more complex, add setup time for the difference
+            if (currentPlateCount > prevPlateCount) {
+                changeoverMinutes += (currentPlateCount - prevPlateCount) * changeoverTime.colorPerPlate;
+            } 
+            // If just changing colors but same count, add a smaller penalty
+            else if (currentPlateCount > 0 && prevPlateCount > 0 && currentPlateCount === prevPlateCount && 
+                    prevJob.colorCategory !== currentJob.colorCategory) {
+                changeoverMinutes += Math.floor(currentPlateCount * changeoverTime.colorPerPlate / 2);
             }
             
             return changeoverMinutes;
@@ -446,60 +612,54 @@
         function getChangeoverType(prevJob, currentJob) {
             if (!prevJob) return 'none';
             
-            // Same substrate is the most important factor
+            // Same die is the most important factor
+            if (prevJob.dieId && currentJob.dieId && prevJob.dieId === currentJob.dieId) {
+                return 'low';
+            }
+            
+            // Same substrate
             if (prevJob.substrate === currentJob.substrate) {
-                // Same customer and substrate
-                if (prevJob.customer === currentJob.customer) {
-                    return 'low';
-                }
-                // Same substrate, different customer
                 return 'medium';
             }
             
-            // Different substrate
+            // Different die and substrate
             return 'high';
         }
         
         // Count job changeovers
         function countChangeovers(jobs) {
-            const pressDayJobs = {};
-            
-            // Group jobs by press and day
-            jobs.forEach(job => {
-                const key = `${job.press}_${job.date}`;
-                if (!pressDayJobs[key]) {
-                    pressDayJobs[key] = [];
-                }
-                pressDayJobs[key].push(job);
+            const pressBuckets = {};
+            pressTypes.forEach(press => {
+                pressBuckets[press] = jobs.filter(job => job.press === press);
             });
             
-            let substrateChanges = 0;
-            let customerChanges = 0;
-            let widthChanges = 0;
+            let dieChanges = 0;
+            let materialChanges = 0;
+            let colorChanges = 0;
             let totalChangeoverMinutes = 0;
             
-            // Count changes within each group
-            Object.values(pressDayJobs).forEach(jobGroup => {
+            // Count changes for each press
+            Object.values(pressBuckets).forEach(pressJobs => {
                 let prevJob = null;
                 
-                jobGroup.forEach(job => {
+                pressJobs.forEach(job => {
                     if (prevJob) {
                         // Calculate changeover time
                         const changeoverMinutes = calculateChangeover(prevJob, job);
                         totalChangeoverMinutes += changeoverMinutes;
                         
-                        // Count substrate changes
-                        if (prevJob.substrate !== job.substrate) {
-                            substrateChanges++;
+                        // Count die changes
+                        if (prevJob.dieId !== job.dieId || prevJob.dieId === '' || job.dieId === '') {
+                            dieChanges++;
                         }
-                        // Count customer changes if substrate is the same
-                        else if (prevJob.customer !== job.customer) {
-                            customerChanges++;
+                        // Count material changes
+                        else if (prevJob.substrate !== job.substrate) {
+                            materialChanges++;
                         }
                         
-                        // Count width changes
-                        if (prevJob.paperWidth !== job.paperWidth) {
-                            widthChanges++;
+                        // Count color changes
+                        if (prevJob.colorCategory !== job.colorCategory) {
+                            colorChanges++;
                         }
                     }
                     
@@ -508,10 +668,10 @@
             });
             
             return {
-                substrateChanges,
-                customerChanges,
-                widthChanges,
-                totalChanges: substrateChanges + customerChanges,
+                dieChanges,
+                materialChanges,
+                colorChanges,
+                totalChanges: dieChanges + materialChanges + colorChanges,
                 totalChangeoverMinutes
             };
         }
@@ -587,31 +747,31 @@
                 displayJobs = originalJobs.filter(job => job.press === currentOriginalPress);
             }
             
-            // Sort by press, date, and start time
+            // Sort by press, then date
             displayJobs.sort((a, b) => {
                 if (a.press !== b.press) {
                     return a.press.localeCompare(b.press);
                 }
-                if (a.date !== b.date) {
-                    return a.date.localeCompare(b.date);
-                }
-                return a.startTime.localeCompare(b.startTime);
+                if (!a.dateObj || !b.dateObj) return 0;
+                return a.dateObj - b.dateObj;
             });
             
-            let currentPressDate = "";
+            let currentPress = "";
             let prevJob = null;
             
             displayJobs.forEach(job => {
                 const tr = document.createElement('tr');
                 
-                // Add a press/date separator
-                const pressDate = `${job.press} - ${job.date}`;
-                if (pressDate !== currentPressDate) {
-                    currentPressDate = pressDate;
+                // Add the color category class
+                tr.classList.add(getColorClass(job.colorCategory));
+                
+                // Add a press separator
+                if (job.press !== currentPress) {
+                    currentPress = job.press;
                     prevJob = null;
                     
                     const separator = document.createElement('tr');
-                    separator.innerHTML = `<td colspan="8" style="background-color: #e9ecef; font-weight: bold;">${pressDate}</td>`;
+                    separator.innerHTML = `<td colspan="8" style="background-color: #e9ecef; font-weight: bold;">${currentPress}</td>`;
                     originalTableEl.appendChild(separator);
                 }
                 
@@ -620,12 +780,19 @@
                 const changeoverType = getChangeoverType(prevJob, job);
                 
                 // Set row class based on grouping
-                if (prevJob && prevJob.substrate === job.substrate) {
+                if (prevJob && prevJob.dieId && job.dieId && prevJob.dieId === job.dieId) {
+                    tr.classList.add('same-die');
+                } else if (prevJob && prevJob.substrate === job.substrate) {
                     tr.classList.add('same-substrate');
-                } else if (prevJob && prevJob.customer === job.customer) {
-                    tr.classList.add('same-customer');
-                } else if (prevJob && prevJob.paperWidth === job.paperWidth) {
-                    tr.classList.add('same-width');
+                } else if (prevJob && prevJob.plateCount === job.plateCount) {
+                    tr.classList.add('same-plates');
+                }
+                
+                // Add urgency class
+                if (job.isUrgent) {
+                    tr.classList.add('urgent');
+                } else if (job.isApproachingDue) {
+                    tr.classList.add('approach-due');
                 }
                 
                 // Create changeover indicator
@@ -639,11 +806,11 @@
                 tr.innerHTML = `
                     <td>${job.jobId}</td>
                     <td>${job.date}</td>
-                    <td>${job.startTime}</td>
-                    <td>${job.duration}</td>
+                    <td class="ship-date">${job.shipmentDate}</td>
+                    <td>${job.dieId || 'N/A'}</td>
+                    <td>${job.substrate}</td>
+                    <td class="color-info">${formatColorInfo(job.plateCount)}</td>
                     <td>${job.customer}</td>
-                    <td title="${job.fullSubstrate}">${job.substrate}</td>
-                    <td>${job.paperWidth}</td>
                     <td>${changeoverHtml}</td>
                 `;
                 
@@ -666,31 +833,31 @@
                 displayJobs = optimizedJobs.filter(job => job.press === currentOptimizedPress);
             }
             
-            // Sort by press, date, and start time
+            // Sort by press, then date
             displayJobs.sort((a, b) => {
                 if (a.press !== b.press) {
                     return a.press.localeCompare(b.press);
                 }
-                if (a.date !== b.date) {
-                    return a.date.localeCompare(b.date);
-                }
-                return a.startTime.localeCompare(b.startTime);
+                if (!a.dateObj || !b.dateObj) return 0;
+                return a.dateObj - b.dateObj;
             });
             
-            let currentPressDate = "";
+            let currentPress = "";
             let prevJob = null;
             
             displayJobs.forEach(job => {
                 const tr = document.createElement('tr');
                 
-                // Add a press/date separator
-                const pressDate = `${job.press} - ${job.date}`;
-                if (pressDate !== currentPressDate) {
-                    currentPressDate = pressDate;
+                // Add the color category class
+                tr.classList.add(getColorClass(job.colorCategory));
+                
+                // Add a press separator
+                if (job.press !== currentPress) {
+                    currentPress = job.press;
                     prevJob = null;
                     
                     const separator = document.createElement('tr');
-                    separator.innerHTML = `<td colspan="9" style="background-color: #e9ecef; font-weight: bold;">${pressDate}</td>`;
+                    separator.innerHTML = `<td colspan="9" style="background-color: #e9ecef; font-weight: bold;">${currentPress}</td>`;
                     optimizedTableEl.appendChild(separator);
                 }
                 
@@ -698,16 +865,16 @@
                 const changeoverMinutes = calculateChangeover(prevJob, job);
                 const changeoverType = getChangeoverType(prevJob, job);
                 
-                // Find original position of this job
-                const originalJobIndex = originalJobs.findIndex(j => 
-                    j.press === job.press && j.date === job.date && j.jobId === job.jobId);
+                // Find corresponding job in original schedule
+                const originalIndex = originalJobs.findIndex(j => 
+                    j.press === job.press && j.jobId === job.jobId);
                 
-                // Find original previous job
+                // Find original previous job (if any)
                 let originalPrevJobIndex = -1;
-                if (originalJobIndex > 0) {
-                    // Look for the previous job with the same press and date
-                    for (let i = originalJobIndex - 1; i >= 0; i--) {
-                        if (originalJobs[i].press === job.press && originalJobs[i].date === job.date) {
+                if (originalIndex > 0) {
+                    // Look for the previous job with the same press
+                    for (let i = originalIndex - 1; i >= 0; i--) {
+                        if (originalJobs[i].press === job.press) {
                             originalPrevJobIndex = i;
                             break;
                         }
@@ -718,19 +885,26 @@
                 let originalChangeoverMinutes = 0;
                 if (originalPrevJobIndex >= 0) {
                     originalChangeoverMinutes = calculateChangeover(
-                        originalJobs[originalPrevJobIndex], originalJobs[originalJobIndex]);
+                        originalJobs[originalPrevJobIndex], originalJobs[originalIndex]);
                 }
                 
                 // Calculate time saved
                 const timeSaved = originalChangeoverMinutes - changeoverMinutes;
                 
                 // Set row class based on grouping
-                if (prevJob && prevJob.substrate === job.substrate) {
+                if (prevJob && prevJob.dieId && job.dieId && prevJob.dieId === job.dieId) {
+                    tr.classList.add('same-die');
+                } else if (prevJob && prevJob.substrate === job.substrate) {
                     tr.classList.add('same-substrate');
-                } else if (prevJob && prevJob.customer === job.customer) {
-                    tr.classList.add('same-customer');
-                } else if (prevJob && prevJob.paperWidth === job.paperWidth) {
-                    tr.classList.add('same-width');
+                } else if (prevJob && prevJob.plateCount === job.plateCount) {
+                    tr.classList.add('same-plates');
+                }
+                
+                // Add urgency class
+                if (job.isUrgent) {
+                    tr.classList.add('urgent');
+                } else if (job.isApproachingDue) {
+                    tr.classList.add('approach-due');
                 }
                 
                 // Create changeover indicator
@@ -752,11 +926,11 @@
                 tr.innerHTML = `
                     <td>${job.jobId}</td>
                     <td>${job.date}</td>
-                    <td>${job.startTime}</td>
-                    <td>${job.duration}</td>
+                    <td class="ship-date">${job.shipmentDate}</td>
+                    <td>${job.dieId || 'N/A'}</td>
+                    <td>${job.substrate}</td>
+                    <td class="color-info">${formatColorInfo(job.plateCount)}</td>
                     <td>${job.customer}</td>
-                    <td title="${job.fullSubstrate}">${job.substrate}</td>
-                    <td>${job.paperWidth}</td>
                     <td>${changeoverHtml}</td>
                     <td>${savingsHtml}</td>
                 `;
@@ -779,15 +953,15 @@
             const optimizedStats = countChangeovers(optimizedJobs);
             
             // Calculate time savings
-            const substrateReduction = originalStats.substrateChanges - optimizedStats.substrateChanges;
-            const customerReduction = originalStats.customerChanges - optimizedStats.customerChanges;
-            const widthReduction = originalStats.widthChanges - optimizedStats.widthChanges;
+            const dieReduction = originalStats.dieChanges - optimizedStats.dieChanges;
+            const materialReduction = originalStats.materialChanges - optimizedStats.materialChanges;
+            const colorReduction = originalStats.colorChanges - optimizedStats.colorChanges;
             
-            const substrateSavings = substrateReduction * changeoverTime.substrate;
-            const customerSavings = customerReduction * changeoverTime.customer;
-            const widthSavings = widthReduction * changeoverTime.width;
+            const dieSavings = dieReduction * changeoverTime.die;
+            const materialSavings = materialReduction * changeoverTime.material;
+            const colorSavings = colorReduction * changeoverTime.colorPerPlate; // Simplified
             
-            const totalSavings = substrateSavings + customerSavings + widthSavings;
+            const totalSavings = dieSavings + materialSavings + colorSavings;
             
             const totalTimeOriginal = originalStats.totalChangeoverMinutes;
             const totalTimeOptimized = optimizedStats.totalChangeoverMinutes;
@@ -809,12 +983,12 @@
                     <div class="stat-value">${totalSavings} min</div>
                 </div>
                 <div class="stat-card">
-                    <div>Substrate Changes</div>
-                    <div class="stat-value">${optimizedStats.substrateChanges} <span class="${substrateReduction >= 0 ? 'positive' : 'negative'}">(${substrateReduction >= 0 ? '-' : '+'}${Math.abs(substrateReduction)})</span></div>
+                    <div>Die Changes</div>
+                    <div class="stat-value">${optimizedStats.dieChanges} <span class="${dieReduction >= 0 ? 'positive' : 'negative'}">(${dieReduction >= 0 ? '-' : '+'}${Math.abs(dieReduction)})</span></div>
                 </div>
                 <div class="stat-card">
-                    <div>Customer Changes</div>
-                    <div class="stat-value">${optimizedStats.customerChanges} <span class="${customerReduction >= 0 ? 'positive' : 'negative'}">(${customerReduction >= 0 ? '-' : '+'}${Math.abs(customerReduction)})</span></div>
+                    <div>Material Changes</div>
+                    <div class="stat-value">${optimizedStats.materialChanges} <span class="${materialReduction >= 0 ? 'positive' : 'negative'}">(${materialReduction >= 0 ? '-' : '+'}${Math.abs(materialReduction)})</span></div>
                 </div>
             `;
             
@@ -822,16 +996,23 @@
             optimizationSummaryEl.innerHTML = `
                 <h3>Detailed Savings Breakdown</h3>
                 <ul>
-                    <li><strong>Substrate Changes:</strong> ${originalStats.substrateChanges} → ${optimizedStats.substrateChanges} (${substrateReduction >= 0 ? 'Saved' : 'Added'} ${Math.abs(substrateReduction)} changes = ${Math.abs(substrateSavings)} minutes)</li>
-                    <li><strong>Customer Changes:</strong> ${originalStats.customerChanges} → ${optimizedStats.customerChanges} (${customerReduction >= 0 ? 'Saved' : 'Added'} ${Math.abs(customerReduction)} changes = ${Math.abs(customerSavings)} minutes)</li>
-                    <li><strong>Width Changes:</strong> ${originalStats.widthChanges} → ${optimizedStats.widthChanges} (${widthReduction >= 0 ? 'Saved' : 'Added'} ${Math.abs(widthReduction)} changes = ${Math.abs(widthSavings)} minutes)</li>
+                    <li><strong>Die Changes:</strong> ${originalStats.dieChanges} → ${optimizedStats.dieChanges} (${dieReduction >= 0 ? 'Saved' : 'Added'} ${Math.abs(dieReduction)} changes = ${Math.abs(dieSavings)} minutes)</li>
+                    <li><strong>Material Changes:</strong> ${originalStats.materialChanges} → ${optimizedStats.materialChanges} (${materialReduction >= 0 ? 'Saved' : 'Added'} ${Math.abs(materialReduction)} changes = ${Math.abs(materialSavings)} minutes)</li>
+                    <li><strong>Color Setup Optimizations:</strong> ${originalStats.colorChanges} → ${optimizedStats.colorChanges} (Saved approximately ${Math.abs(colorSavings)} minutes)</li>
                     <li><strong>Total Changeover Time:</strong> ${totalTimeOriginal} → ${totalTimeOptimized} minutes</li>
                     <li><strong>Net Time Saved:</strong> ${totalSavings} minutes (${Math.floor(totalSavings/60)} hours and ${totalSavings % 60} minutes)</li>
                 </ul>
+                <h3>Material Savings</h3>
+                <p>By reducing material changes from ${originalStats.materialChanges} to ${optimizedStats.materialChanges}, you'll save considerable material that would otherwise be wasted during setup.</p>
+                <p>Each material change typically requires test runs to ensure proper printing, resulting in wasted material. This optimization helps minimize this waste.</p>
                 <h3>Optimization Method</h3>
-                <p>Jobs were grouped by press and date, then sorted by substrate, customer, and width to minimize changeovers.</p>
-                <p>For each press and date, jobs with the same substrate were grouped together to minimize substrate changes, which have the highest setup time (${changeoverTime.substrate} minutes each).</p>
-                <p>Within each substrate group, jobs were further sorted by customer and width to minimize these secondary changeovers.</p>
+                <p>The schedule was optimized with these priorities:</p>
+                <ol>
+                    <li><strong>Die Continuity:</strong> Jobs with the same die are grouped together to minimize time-consuming die changes</li>
+                    <li><strong>Material Batching:</strong> Jobs with the same substrate are grouped to reduce material waste</li>
+                    <li><strong>Color Progression:</strong> Jobs are arranged to progress from simpler to more complex color setups where possible</li>
+                    <li><strong>Ship Date Priority:</strong> All optimizations still respect ship date requirements</li>
+                </ol>
             `;
         }
         
@@ -840,49 +1021,182 @@
             // Clone jobs to avoid modifying originals
             const optimizedJobs = JSON.parse(JSON.stringify(jobs));
             
-            // Organize by press and date
-            const pressDayJobs = {};
+            // Group jobs by press
+            const pressBuckets = {};
+            pressTypes.forEach(press => {
+                pressBuckets[press] = optimizedJobs.filter(job => job.press === press);
+            });
             
-            // Group jobs by press and day
-            optimizedJobs.forEach(job => {
-                const key = `${job.press}_${job.date}`;
-                if (!pressDayJobs[key]) {
-                    pressDayJobs[key] = [];
+            const prioritizeShipDates = prioritizeShipDatesEl.checked;
+            const groupByDie = groupByDieEl.checked;
+            
+            // Optimize each press separately
+            Object.keys(pressBuckets).forEach(press => {
+                const pressJobs = pressBuckets[press];
+                
+                if (prioritizeShipDates) {
+                    // Group by ship date windows first
+                    const shipDateBuckets = {};
+                    
+                    // Find earliest and latest ship dates
+                    let earliestShip = null;
+                    let latestShip = null;
+                    
+                    pressJobs.forEach(job => {
+                        if (job.shipDateObj) {
+                            if (!earliestShip || job.shipDateObj < earliestShip) {
+                                earliestShip = job.shipDateObj;
+                            }
+                            if (!latestShip || job.shipDateObj > latestShip) {
+                                latestShip = job.shipDateObj;
+                            }
+                        }
+                    });
+                    
+                    // Create buckets for each week (or appropriate time period)
+                    if (earliestShip && latestShip) {
+                        const weekBuckets = {};
+                        let currentDate = new Date(earliestShip);
+                        let bucketIndex = 0;
+                        
+                        while (currentDate <= latestShip) {
+                            const weekKey = `bucket-${bucketIndex}`;
+                            const endDate = new Date(currentDate);
+                            endDate.setDate(endDate.getDate() + 7);
+                            
+                            weekBuckets[weekKey] = {
+                                startDate: new Date(currentDate),
+                                endDate: new Date(endDate),
+                                jobs: []
+                            };
+                            
+                            // Advance 7 days
+                            currentDate.setDate(currentDate.getDate() + 7);
+                            bucketIndex++;
+                        }
+                        
+                        // Add a bucket for jobs with no ship date
+                        weekBuckets['no-date'] = {
+                            startDate: null,
+                            endDate: null,
+                            jobs: []
+                        };
+                        
+                        // Assign jobs to weekly buckets
+                        pressJobs.forEach(job => {
+                            let assigned = false;
+                            
+                            if (job.shipDateObj) {
+                                // Find the appropriate bucket for this ship date
+                                for (const [key, bucket] of Object.entries(weekBuckets)) {
+                                    if (bucket.startDate && bucket.endDate &&
+                                        job.shipDateObj >= bucket.startDate &&
+                                        job.shipDateObj < bucket.endDate) {
+                                        bucket.jobs.push(job);
+                                        assigned = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            // If not assigned to any bucket, put in no-date
+                            if (!assigned) {
+                                weekBuckets['no-date'].jobs.push(job);
+                            }
+                        });
+                        
+                        // Now optimize each bucket
+                        Object.values(weekBuckets).forEach(bucket => {
+                            optimizeBucket(bucket.jobs, groupByDie);
+                        });
+                        
+                        // Replace press jobs with optimized buckets in order
+                        pressBuckets[press] = [];
+                        
+                        // Add buckets in order of date
+                        const bucketKeys = Object.keys(weekBuckets).sort((a, b) => {
+                            if (a === 'no-date') return 1; // No-date goes last
+                            if (b === 'no-date') return -1;
+                            return a.localeCompare(b);
+                        });
+                        
+                        bucketKeys.forEach(key => {
+                            pressBuckets[press].push(...weekBuckets[key].jobs);
+                        });
+                    } else {
+                        // No ship dates, just optimize the press directly
+                        optimizeBucket(pressJobs, groupByDie);
+                    }
+                } else {
+                    // No ship date prioritization, just optimize by die and material
+                    optimizeBucket(pressJobs, groupByDie);
                 }
-                pressDayJobs[key].push(job);
             });
             
-            // Optimize each group
-            Object.keys(pressDayJobs).forEach(key => {
-                const jobGroup = pressDayJobs[key];
-                
-                // Sort by substrate, customer, and width to minimize changeovers
-                jobGroup.sort((a, b) => {
-                    // First by substrate
-                    if (a.substrate < b.substrate) return -1;
-                    if (a.substrate > b.substrate) return 1;
+            // Function to optimize a bucket of jobs
+            function optimizeBucket(jobs, groupByDie) {
+                if (groupByDie) {
+                    // Group by die first
+                    const dieBuckets = {};
                     
-                    // Then by customer within same substrate
-                    if (a.customer < b.customer) return -1;
-                    if (a.customer > b.customer) return 1;
+                    jobs.forEach(job => {
+                        const dieKey = job.dieId || 'no-die';
+                        if (!dieBuckets[dieKey]) {
+                            dieBuckets[dieKey] = [];
+                        }
+                        dieBuckets[dieKey].push(job);
+                    });
                     
-                    // Then by width
-                    if (a.paperWidth < b.paperWidth) return -1;
-                    if (a.paperWidth > b.paperWidth) return 1;
+                    // For each die group, sort by material and color complexity
+                    Object.values(dieBuckets).forEach(dieBucket => {
+                        dieBucket.sort((a, b) => {
+                            // First by material
+                            if (a.substrate < b.substrate) return -1;
+                            if (a.substrate > b.substrate) return 1;
+                            
+                            // Then by color complexity (simpler first)
+                            const aPlateCount = parseInt(a.plateCount) || 0;
+                            const bPlateCount = parseInt(b.plateCount) || 0;
+                            return aPlateCount - bPlateCount;
+                        });
+                        
+                        // Mark jobs as optimized
+                        dieBucket.forEach(job => {
+                            job.optimized = true;
+                        });
+                    });
                     
-                    return 0;
-                });
-                
-                // Mark as optimized
-                jobGroup.forEach(job => {
-                    job.optimized = true;
-                });
-            });
+                    // Replace jobs with optimized die buckets, sort die buckets by size (largest first)
+                    const sortedDieBuckets = Object.entries(dieBuckets).sort((a, b) => b[1].length - a[1].length);
+                    
+                    jobs.length = 0; // Clear the array
+                    sortedDieBuckets.forEach(([die, dieBucket]) => {
+                        jobs.push(...dieBucket);
+                    });
+                } else {
+                    // No die grouping, just sort by material and color complexity
+                    jobs.sort((a, b) => {
+                        // First by material
+                        if (a.substrate < b.substrate) return -1;
+                        if (a.substrate > b.substrate) return 1;
+                        
+                        // Then by color complexity (simpler first)
+                        const aPlateCount = parseInt(a.plateCount) || 0;
+                        const bPlateCount = parseInt(b.plateCount) || 0;
+                        return aPlateCount - bPlateCount;
+                    });
+                    
+                    // Mark jobs as optimized
+                    jobs.forEach(job => {
+                        job.optimized = true;
+                    });
+                }
+            }
             
             // Flatten back to a single array
             const result = [];
-            Object.values(pressDayJobs).forEach(group => {
-                result.push(...group);
+            Object.values(pressBuckets).forEach(pressJobs => {
+                result.push(...pressJobs);
             });
             
             return result;
@@ -896,10 +1210,8 @@
                 if (a.press !== b.press) {
                     return a.press.localeCompare(b.press);
                 }
-                if (a.date !== b.date) {
-                    return a.date.localeCompare(b.date);
-                }
-                return a.startTime.localeCompare(b.startTime);
+                if (!a.dateObj || !b.dateObj) return 0;
+                return a.dateObj - b.dateObj;
             });
             
             // Group by press
@@ -917,7 +1229,7 @@
                 lines.push(press);
                 
                 // Add headers
-                lines.push("Date\tStart Time\tDuration\tJob ID\tCustomer\tSubstrate\tWidth");
+                lines.push("Date\tStart Time\tDuration\tJob ID\tShip Date\tDie ID\tSubstrate\tPlate Count\tCustomer");
                 
                 // Add jobs
                 pressJobs.forEach(job => {
@@ -926,9 +1238,11 @@
                         job.startTime,
                         job.duration,
                         job.jobId,
-                        job.customer,
+                        job.shipmentDate,
+                        job.dieId || '',
                         job.substrate,
-                        job.paperWidth
+                        job.plateCount,
+                        job.customer
                     ];
                     
                     lines.push(fields.join('\t'));
@@ -946,6 +1260,29 @@
             const stats = countChangeovers(jobs);
             const changeoverTime = getChangeoverTimes();
             
+            // Count job types
+            let singleColorJobs = 0;
+            let processColorJobs = 0;
+            let multiColorJobs = 0;
+            let complexColorJobs = 0;
+            let jobsWithDie = 0;
+            
+            jobs.forEach(job => {
+                if (job.colorCategory === 'single') {
+                    singleColorJobs++;
+                } else if (job.colorCategory === 'process') {
+                    processColorJobs++;
+                } else if (job.colorCategory === 'multi') {
+                    multiColorJobs++;
+                } else if (job.colorCategory === 'complex') {
+                    complexColorJobs++;
+                }
+                
+                if (job.dieId && job.dieId !== '') {
+                    jobsWithDie++;
+                }
+            });
+            
             // Group by press
             const pressJobs = {};
             pressTypes.forEach(press => {
@@ -960,27 +1297,34 @@
                         <div class="stat-value">${jobs.length}</div>
                     </div>
                     <div class="stat-card">
-                        <div>Total Changeovers</div>
-                        <div class="stat-value">${stats.totalChanges}</div>
+                        <div>Die Changes</div>
+                        <div class="stat-value">${stats.dieChanges}</div>
                     </div>
                     <div class="stat-card">
-                        <div>Substrate Changes</div>
-                        <div class="stat-value">${stats.substrateChanges}</div>
+                        <div>Material Changes</div>
+                        <div class="stat-value">${stats.materialChanges}</div>
                     </div>
                     <div class="stat-card">
-                        <div>Customer Changes</div>
-                        <div class="stat-value">${stats.customerChanges}</div>
+                        <div>Jobs with Dies</div>
+                        <div class="stat-value">${jobsWithDie}</div>
                     </div>
                 </div>
                 
                 <h3>Changeover Time Analysis</h3>
                 <p>Based on your parameters:</p>
                 <ul>
-                    <li>Substrate changes (${stats.substrateChanges} × ${changeoverTime.substrate} min) = ${stats.substrateChanges * changeoverTime.substrate} minutes</li>
-                    <li>Customer changes (${stats.customerChanges} × ${changeoverTime.customer} min) = ${stats.customerChanges * changeoverTime.customer} minutes</li>
-                    <li>Width changes (${stats.widthChanges} × ${changeoverTime.width} min) = ${stats.widthChanges * changeoverTime.width} minutes</li>
+                    <li>Die changes (${stats.dieChanges} × ${changeoverTime.die} min) = ${stats.dieChanges * changeoverTime.die} minutes</li>
+                    <li>Material changes (${stats.materialChanges} × ${changeoverTime.material} min) = ${stats.materialChanges * changeoverTime.material} minutes</li>
                 </ul>
                 <p>Total changeover time: ${stats.totalChangeoverMinutes} minutes (${Math.floor(stats.totalChangeoverMinutes/60)} hours and ${stats.totalChangeoverMinutes % 60} minutes)</p>
+                
+                <h3>Color Complexity Analysis</h3>
+                <ul>
+                    <li><strong>Single Color Jobs:</strong> ${singleColorJobs} (${Math.round(singleColorJobs/jobs.length*100)}%)</li>
+                    <li><strong>4-Color Process Jobs:</strong> ${processColorJobs} (${Math.round(processColorJobs/jobs.length*100)}%)</li>
+                    <li><strong>Other Multi-Color Jobs:</strong> ${multiColorJobs} (${Math.round(multiColorJobs/jobs.length*100)}%)</li>
+                    <li><strong>Complex Color Jobs (5+ colors):</strong> ${complexColorJobs} (${Math.round(complexColorJobs/jobs.length*100)}%)</li>
+                </ul>
                 
                 <h3>Press Distribution</h3>
                 <table>
@@ -988,7 +1332,8 @@
                         <tr>
                             <th>Press</th>
                             <th>Jobs</th>
-                            <th>Changeovers</th>
+                            <th>Die Changes</th>
+                            <th>Material Changes</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1003,7 +1348,8 @@
                     <tr>
                         <td>${press}</td>
                         <td>${pressJobsList.length}</td>
-                        <td>${pressStats.totalChanges}</td>
+                        <td>${pressStats.dieChanges}</td>
+                        <td>${pressStats.materialChanges}</td>
                     </tr>
                 `;
             });
@@ -1013,7 +1359,7 @@
                 </table>
                 
                 <h3>Optimization Opportunities</h3>
-                <p>There are potential opportunities to reduce changeover time by reordering jobs. Click "Optimize Schedule" to see the optimized schedule.</p>
+                <p>There are potential opportunities to reduce changeover time by reordering jobs to minimize die changes and material waste. Click "Optimize Schedule" to see the optimized version.</p>
             `;
             
             return html;
@@ -1100,3 +1446,4 @@
     </script>
 </body>
 </html>
+
