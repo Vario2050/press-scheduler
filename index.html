@@ -5,1105 +5,823 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Press Scheduling Optimization Tool</title>
     <style>
-        :root {
-            --bg-color: #fff;
-            --text-color: #333;
-            --card-bg: #f9f9f9;
-            --border-color: #ddd;
-            --primary-color: #4CAF50;
-            --secondary-color: #2196f3;
-            --warning-color: #FFC107;
-            --danger-color: #f44336;
-            --header-bg: #f2f2f2;
-            --same-die-color: #d4edda;
-            --same-substrate-color: #d1ecf1;
-            --same-plates-color: #fff3cd;
-        }
-        
-        .dark-mode {
-            --bg-color: #222;
-            --text-color: #eee;
-            --card-bg: #333;
-            --border-color: #444;
-            --primary-color: #5cb85c;
-            --secondary-color: #3aa0ff;
-            --warning-color: #ffce3a;
-            --danger-color: #ff5c5c;
-            --header-bg: #444;
-            --same-die-color: #1e392a;
-            --same-substrate-color: #1e3c47;
-            --same-plates-color: #3e3624;
-        }
-        
         body {
             font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: var(--text-color);
-            background-color: var(--bg-color);
             margin: 0;
             padding: 20px;
-            transition: background-color 0.3s, color 0.3s;
+            line-height: 1.6;
+            color: #333;
         }
-        
-        h1, h2, h3, h4 {
-            margin-top: 0;
-        }
-        
         .container {
             max-width: 1200px;
             margin: 0 auto;
         }
-        
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .dark-mode-toggle {
-            display: flex;
-            align-items: center;
-        }
-        
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 30px;
-            margin-left: 10px;
-        }
-        
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 30px;
-        }
-        
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 22px;
-            width: 22px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        
-        input:checked + .slider {
-            background-color: var(--primary-color);
-        }
-        
-        input:checked + .slider:before {
-            transform: translateX(30px);
-        }
-        
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        
         textarea {
             width: 100%;
             height: 300px;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
             font-family: monospace;
             padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            border: 1px solid #ddd;
         }
-        
         button {
-            background-color: var(--primary-color);
+            padding: 10px 15px;
+            background-color: #4CAF50;
             color: white;
             border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
             cursor: pointer;
             margin-right: 10px;
-            margin-bottom: 5px;
-            transition: background-color 0.3s, transform 0.2s;
+            margin-bottom: 10px;
+            border-radius: 4px;
         }
-        
-        button:hover {
-            filter: brightness(1.05);
-        }
-        
-        button:active {
-            transform: translateY(1px);
-        }
-        
         button:disabled {
-            opacity: 0.6;
+            background-color: #cccccc;
             cursor: not-allowed;
         }
-        
-        button.btn-secondary {
-            background-color: var(--secondary-color);
+        #optimizeBtn {
+            background-color: #2196F3;
         }
-        
-        button.btn-warning {
-            background-color: var(--warning-color);
+        #clearBtn {
+            background-color: #f44336;
+        }
+        #exportBtn {
+            background-color: #ff9800;
+        }
+        .result {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+        }
+        h1, h2 {
             color: #333;
         }
-        
-        button.btn-danger {
-            background-color: var(--danger-color);
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
         }
-        
-        input[type="number"] {
-            width: 60px;
+        th, td {
             padding: 8px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            text-align: left;
+            border: 1px solid #ddd;
         }
-        
-        .form-group {
-            margin-bottom: 15px;
+        th {
+            background-color: #f2f2f2;
+            position: sticky;
+            top: 0;
         }
-        
-        .form-row {
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        .same-die {
+            background-color: #d4edda;
+        }
+        .same-substrate {
+            background-color: #d1ecf1;
+        }
+        .same-plates {
+            background-color: #fff3cd;
+        }
+        .single-color {
+            border-left: 4px solid #4CAF50;
+        }
+        .four-color {
+            border-left: 4px solid #2196F3;
+        }
+        .multi-color {
+            border-left: 4px solid #FFC107;
+        }
+        .complex-color {
+            border-left: 4px solid #F44336;
+        }
+        .tabs {
             display: flex;
-            flex-wrap: wrap;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
         }
-        
-        .form-row > * {
-            margin-right: 20px;
-            margin-bottom: 10px;
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            margin-right: 5px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
         }
-        
+        .tab.active {
+            background-color: white;
+            font-weight: bold;
+            border-bottom: 2px solid white;
+            margin-bottom: -1px;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
         .stats {
             display: flex;
             flex-wrap: wrap;
             gap: 15px;
             margin-bottom: 20px;
         }
-        
         .stat-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
+            flex: 1;
+            min-width: 200px;
             padding: 15px;
-            flex: 1 0 auto;
-            min-width: 150px;
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             text-align: center;
         }
-        
         .stat-value {
             font-size: 24px;
             font-weight: bold;
-            margin-top: 5px;
+            margin: 10px 0;
+            color: #2196F3;
         }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-            font-size: 14px;
-            overflow-x: auto;
+        .positive {
+            color: #4CAF50;
         }
-        
-        th, td {
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            text-align: left;
+        .negative {
+            color: #f44336;
         }
-        
-        th {
-            background-color: var(--header-bg);
-            position: sticky;
-            top: 0;
+        .legend {
+            margin-bottom: 15px;
         }
-        
-        tr:nth-child(even) {
-            background-color: rgba(0,0,0,0.05);
-        }
-        
-        .tabs {
-            display: flex;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            border: 1px solid transparent;
-            border-bottom: none;
-            border-radius: 4px 4px 0 0;
-            background-color: var(--card-bg);
-            margin-right: 5px;
+        .legend-item {
+            display: inline-block;
+            padding: 5px 10px;
+            margin-right: 10px;
+            border-radius: 4px;
             margin-bottom: 5px;
         }
-        
-        .tab.active {
-            border-color: var(--border-color);
-            background-color: var(--bg-color);
-            margin-bottom: -1px;
-        }
-        
-        .tab-content {
-            display: none;
-            padding: 20px;
-            background-color: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-top: none;
-            overflow-x: auto;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        .urgent {
-            background-color: rgba(255, 0, 0, 0.1);
-        }
-        
-        .approaching-due {
-            background-color: rgba(255, 165, 0, 0.1);
-        }
-        
-        .optimized {
-            font-weight: bold;
-        }
-        
-        .same-die {
-            background-color: var(--same-die-color);
-        }
-        
-        .same-substrate {
-            background-color: var(--same-substrate-color);
-        }
-        
-        .same-plates {
-            background-color: var(--same-plates-color);
-        }
-        
-        .timeline {
-            position: relative;
-            margin-top: 50px;
-            margin-bottom: 50px;
-            overflow-x: auto;
-        }
-        
-        .timeline-container {
-            position: relative;
-            min-width: 100%;
-        }
-        
-        .timeline-track {
-            position: relative;
-            height: 30px;
-            margin-bottom: 10px;
-        }
-        
-        .timeline-label {
-            position: absolute;
-            left: 0;
-            top: -20px;
-            font-weight: bold;
-        }
-        
-        .timeline-job {
-            position: absolute;
-            height: 100%;
-            background-color: var(--primary-color);
-            border-radius: 4px;
-            color: white;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            padding: 0 5px;
-        }
-        
-        .timeline-job.optimized {
-            background-color: var(--secondary-color);
-        }
-        
-        .tooltip {
-            position: absolute;
-            background-color: rgba(0,0,0,0.8);
-            color: white;
-            padding: 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            z-index: 100;
-            max-width: 250px;
-            display: none;
-        }
-        
-        .tooltip-title {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .timeline-scale {
-            position: relative;
-            height: 20px;
-            border-top: 1px solid var(--border-color);
-            margin-top: 20px;
-        }
-        
-        .timeline-marker {
-            position: absolute;
-            top: -10px;
-            transform: translateX(-50%);
-            font-size: 12px;
-            text-align: center;
-        }
-        
-        .timeline-marker::before {
-            content: '';
-            display: block;
-            height: 10px;
-            width: 1px;
-            background-color: var(--border-color);
-            margin: 0 auto;
-        }
-        
-        .file-input-container {
-            display: flex;
-            margin-bottom: 10px;
-        }
-        
-        .file-input-container input[type="file"] {
-            display: none;
-        }
-        
-        .file-input-container label {
-            background-color: #f5f5f5;
-            color: #333;
-            padding: 8px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            border: 1px solid #ddd;
-            transition: background-color 0.3s;
-        }
-        
-        .file-input-container label:hover {
-            background-color: #e8e8e8;
-        }
-        
-        .file-name {
-            margin-left: 10px;
-            line-height: 2.2;
-        }
-        
         .press-selector {
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
-        
-        .press-checkbox {
+        #exportArea {
+            display: none;
+        }
+        .parameters {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        label {
             margin-right: 15px;
+            font-weight: bold;
+        }
+        input[type="number"] {
+            width: 60px;
+            padding: 5px;
+            margin-right: 5px;
+        }
+        .urgent {
+            background-color: #ffebee;
+        }
+        .approach-due {
+            background-color: #fff8e1;
+        }
+        .ship-date {
+            font-weight: bold;
+        }
+        .color-info {
+            font-weight: bold;
+        }
+        .dot {
+            height: 12px;
+            width: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .color-1 {
+            background-color: #4CAF50;
+        }
+        .color-4 {
+            background-color: #2196F3;
+        }
+        .color-multi {
+            background-color: #FFC107;
+        }
+        .color-complex {
+            background-color: #F44336;
+        }
+        .parsing-status {
+            padding: 12px 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            position: relative;
+        }
+
+        .parsing-status.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .parsing-status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .close-status {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: inherit;
         }
         
-        /* Enhanced Loading indicator */
-        .loading {
-            text-align: center;
+        .dropzone {
+            border: 2px dashed #ccc;
+            border-radius: 4px;
             padding: 20px;
-            font-style: italic;
-            color: #888;
+            text-align: center;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+            transition: background-color 0.3s ease;
         }
         
-        /* Enhanced Error messages */
-        .error {
-            background-color: #fff0f0;
-            border-left: 4px solid #ff3333;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 4px;
-        }
-        
-        /* Enhanced Success messages */
-        .success-message {
-            background-color: #f0fff0;
-            border-left: 4px solid #33cc33;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 4px;
-        }
-        
-        /* Animation for analyze button */
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        
-        #analyzeBtn:hover {
-            animation: pulse 1s infinite;
-        }
-
-        /* Responsive styles */
-        @media (max-width: 768px) {
-            .form-row {
-                flex-direction: column;
-            }
-            
-            .form-row > * {
-                margin-right: 0;
-            }
-            
-            .tabs {
-                flex-direction: column;
-            }
-            
-            .tab {
-                margin-bottom: 5px;
-            }
-        }
-
-        /* Table container with horizontal scroll for mobile */
-        .table-container {
-            width: 100%;
-            overflow-x: auto;
+        .dropzone.highlight {
+            background-color: #e3f2fd;
+            border-color: #2196F3;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>Press Scheduling Optimization Tool</h1>
-            <div class="dark-mode-toggle">
-                <span>🌙 Dark Mode</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="darkModeToggle">
-                    <span class="slider"></span>
-                </label>
-            </div>
-        </div>
-        
+        <h1>Press Scheduling Optimization Tool</h1>
         <p>Optimize label printing schedules to minimize changeovers while respecting ship dates.</p>
         
-        <div class="card">
+        <div class="dropzone" id="dropzone">
+            <p>Drag & drop your schedule data file here or click to select</p>
+            <input type="file" id="fileInput" style="display: none;">
+        </div>
+        
+        <div>
             <h2>Input Schedule Data</h2>
-            
-            <div class="file-input-container">
-                <input type="file" id="fileInput" accept=".csv,.txt,.tsv">
-                <label for="fileInput">Choose File</label>
-                <span class="file-name" id="fileName">No file chosen</span>
-            </div>
-            
-            <div>
-                <button id="loadFileBtn">Load File</button>
-                <button id="loadSampleBtn" class="btn-secondary">Load Sample Data</button>
-            </div>
-            
             <textarea id="inputData" placeholder="Paste your tab-delimited schedule data here..."></textarea>
-            
-            <div>
-                <button id="analyzeBtn">Analyze Schedule Data</button>
-                <button id="optimizeBtn" disabled>Optimize Schedule</button>
-                <button id="exportBtn" disabled>Copy to Clipboard</button>
-                <button id="downloadBtn" disabled>Download CSV</button>
-                <button id="clearBtn" class="btn-danger">Clear Data</button>
-            </div>
         </div>
         
-        <div class="card">
+        <div>
+            <button id="analyzeBtn">Analyze Schedule Data</button>
+            <button id="optimizeBtn" disabled>Optimize Schedule</button>
+            <button id="exportBtn" disabled>Export Optimized Schedule</button>
+            <button id="clearBtn">Clear Data</button>
+        </div>
+
+        <div class="parameters" id="optimizationParams">
             <h2>Optimization Parameters</h2>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Die Change Time (min):</label>
-                    <input type="number" id="dieTime" value="15" min="0">
-                </div>
-                
-                <div class="form-group">
-                    <label>Material Change Time (min):</label>
-                    <input type="number" id="materialTime" value="10" min="0">
-                </div>
-                
-                <div class="form-group">
-                    <label>Color Setup Time per Cylinder (min):</label>
-                    <input type="number" id="colorTime" value="3" min="0">
-                </div>
+            <div>
+                <label>Die Change Time (min): <input type="number" id="dieTime" value="15"></label>
+                <label>Material Change Time (min): <input type="number" id="materialTime" value="10"></label>
+                <label>Color Setup Time per Cylinder (min): <input type="number" id="colorTime" value="3"></label>
             </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <input type="checkbox" id="prioritizeShipDates" checked>
-                    <label for="prioritizeShipDates">Prioritize ship dates</label>
-                </div>
-                
-                <div class="form-group">
-                    <input type="checkbox" id="groupByDie" checked>
-                    <label for="groupByDie">Group by Die ID</label>
-                </div>
+            <div style="margin-top: 10px;">
+                <label><input type="checkbox" id="prioritizeShipDates" checked> Prioritize ship dates</label>
+                <label><input type="checkbox" id="groupByDie" checked> Group by Die ID</label>
             </div>
         </div>
         
-        <div class="card">
-            <h2>Analysis Summary</h2>
-            <div id="analysisSummary">
-                Paste data and click "Analyze Schedule Data" to begin.
-            </div>
-        </div>
+        <div id="statusMessages"></div>
         
-        <div id="resultTabs" class="tabs" style="display:none;">
-            <div class="tab active" data-tab="original">Original Schedule</div>
+        <div id="resultsTabs" class="tabs" style="display:none;">
+            <div class="tab active" data-tab="summary">Summary</div>
+            <div class="tab" data-tab="original">Original Schedule</div>
             <div class="tab" data-tab="optimized">Optimized Schedule</div>
-            <div class="tab" data-tab="timeline">Schedule Timeline</div>
         </div>
-        
-        <div id="originalSchedule" class="tab-content active">
-            <div id="pressSelectors" class="press-selector"></div>
-            <div class="table-container">
-                <table id="originalTable">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Start Time</th>
-                            <th>Duration</th>
-                            <th>Job ID</th>
-                            <th>Ship Date</th>
-                            <th>Press</th>
-                            <th>Status</th>
-                            <th>Customer</th>
-                            <th>Die ID</th>
-                            <th>Substrate</th>
-                            <th>Plate Count</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+
+        <div id="summary" class="tab-content active">
+            <div class="result">
+                <h2>Analysis Summary</h2>
+                <div id="analysisSummary">Paste data and click "Analyze Schedule Data" to begin.</div>
+                
+                <div id="optimizationStats" style="display:none;">
+                    <h2>Optimization Results</h2>
+                    <div class="stats" id="statsContainer">
+                        <!-- Stats will be inserted here -->
+                    </div>
+                    <div id="optimizationSummary"></div>
+                </div>
             </div>
         </div>
         
-        <div id="optimizedSchedule" class="tab-content">
-            <div id="optimizationStats"></div>
-            <div class="table-container">
-                <table id="optimizedTable">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Start Time</th>
-                            <th>Duration</th>
-                            <th>Job ID</th>
-                            <th>Ship Date</th>
-                            <th>Press</th>
-                            <th>Status</th>
-                            <th>Customer</th>
-                            <th>Die ID</th>
-                            <th>Substrate</th>
-                            <th>Plate Count</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+        <div id="original" class="tab-content">
+            <div class="result">
+                <h2>Original Schedule</h2>
+                <div class="press-selector" id="originalPressSelector">
+                    <!-- Press selector will be inserted here -->
+                </div>
+                <div class="legend">
+                    <div class="legend-item same-die">Same Die</div>
+                    <div class="legend-item same-substrate">Same Material</div>
+                    <div class="legend-item same-plates">Same Plate Count</div>
+                    <div class="legend-item" style="border-left: 4px solid #4CAF50; padding-left: 10px;">Single Color</div>
+                    <div class="legend-item" style="border-left: 4px solid #2196F3; padding-left: 10px;">4-Color Process</div>
+                    <div class="legend-item" style="border-left: 4px solid #FFC107; padding-left: 10px;">Multi-Color</div>
+                </div>
+                <div class="table-container">
+                    <table id="originalTable">
+                        <thead>
+                            <tr>
+                                <th>Job ID</th>
+                                <th>Date</th>
+                                <th>Ship Date</th>
+                                <th>Die ID</th>
+                                <th>Substrate</th>
+                                <th>Colors</th>
+                                <th>Customer</th>
+                                <th>Changeover</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Original schedule will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
         
-        <div id="timelineView" class="tab-content">
-            <div id="timelineContainer" class="timeline">
-                <!-- Timeline will be generated dynamically -->
+        <div id="optimized" class="tab-content">
+            <div class="result">
+                <h2>Optimized Schedule</h2>
+                <div class="press-selector" id="optimizedPressSelector">
+                    <!-- Press selector will be inserted here -->
+                </div>
+                <div class="legend">
+                    <div class="legend-item same-die">Same Die</div>
+                    <div class="legend-item same-substrate">Same Material</div>
+                    <div class="legend-item same-plates">Same Plate Count</div>
+                    <div class="legend-item" style="border-left: 4px solid #4CAF50; padding-left: 10px;">Single Color</div>
+                    <div class="legend-item" style="border-left: 4px solid #2196F3; padding-left: 10px;">4-Color Process</div>
+                    <div class="legend-item" style="border-left: 4px solid #FFC107; padding-left: 10px;">Multi-Color</div>
+                </div>
+                <div class="table-container">
+                    <table id="optimizedTable">
+                        <thead>
+                            <tr>
+                                <th>Job ID</th>
+                                <th>Date</th>
+                                <th>Ship Date</th>
+                                <th>Die ID</th>
+                                <th>Substrate</th>
+                                <th>Colors</th>
+                                <th>Customer</th>
+                                <th>Changeover</th>
+                                <th>Savings</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Optimized schedule will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
+        
+        <textarea id="exportArea"></textarea>
     </div>
-    
+
     <script>
         // DOM elements
         const inputDataEl = document.getElementById('inputData');
         const analyzeBtnEl = document.getElementById('analyzeBtn');
         const optimizeBtnEl = document.getElementById('optimizeBtn');
         const exportBtnEl = document.getElementById('exportBtn');
-        const downloadBtnEl = document.getElementById('downloadBtn');
         const clearBtnEl = document.getElementById('clearBtn');
         const analysisSummaryEl = document.getElementById('analysisSummary');
         const optimizationStatsEl = document.getElementById('optimizationStats');
-        const resultTabsEl = document.getElementById('resultTabs');
-        const originalTableEl = document.getElementById('originalTable');
-        const optimizedTableEl = document.getElementById('optimizedTable');
-        const fileInputEl = document.getElementById('fileInput');
-        const fileNameEl = document.getElementById('fileName');
-        const loadFileBtnEl = document.getElementById('loadFileBtn');
-        const loadSampleBtnEl = document.getElementById('loadSampleBtn');
-        const pressSelectorsEl = document.getElementById('pressSelectors');
+        const statsContainerEl = document.getElementById('statsContainer');
+        const optimizationSummaryEl = document.getElementById('optimizationSummary');
+        const originalTableEl = document.getElementById('originalTable').querySelector('tbody');
+        const optimizedTableEl = document.getElementById('optimizedTable').querySelector('tbody');
+        const originalPressSelectorEl = document.getElementById('originalPressSelector');
+        const optimizedPressSelectorEl = document.getElementById('optimizedPressSelector');
+        const resultTabsEl = document.getElementById('resultsTabs');
+        const exportAreaEl = document.getElementById('exportArea');
         const dieTimeEl = document.getElementById('dieTime');
         const materialTimeEl = document.getElementById('materialTime');
         const colorTimeEl = document.getElementById('colorTime');
         const prioritizeShipDatesEl = document.getElementById('prioritizeShipDates');
         const groupByDieEl = document.getElementById('groupByDie');
-        const darkModeToggleEl = document.getElementById('darkModeToggle');
-        const timelineContainerEl = document.getElementById('timelineContainer');
-        const tabsEl = document.querySelectorAll('.tab');
-        const tabContentsEl = document.querySelectorAll('.tab-content');
+        const statusMessagesEl = document.getElementById('statusMessages');
+        const dropzoneEl = document.getElementById('dropzone');
+        const fileInputEl = document.getElementById('fileInput');
         
-        // Global variables
+        // Data storage
         let originalJobs = [];
         let optimizedJobs = [];
         let pressTypes = [];
-        let selectedPresses = [];
+        let currentOriginalPress = "";
+        let currentOptimizedPress = "";
         const today = new Date();
         
-        // Tab switching
-        tabsEl.forEach(tab => {
-            tab.addEventListener('click', () => {
-                // Remove active class from all tabs and contents
-                tabsEl.forEach(t => t.classList.remove('active'));
-                tabContentsEl.forEach(tc => tc.classList.remove('active'));
-                
-                // Add active class to clicked tab
-                tab.classList.add('active');
-                
-                // Show corresponding content
-                const tabId = tab.getAttribute('data-tab');
-                if (tabId === 'timeline') {
-                    document.getElementById('timelineView').classList.add('active');
-                } else {
-                    document.getElementById(tabId + 'Schedule').classList.add('active');
-                }
-            });
+        // Drag and drop functionality
+        dropzoneEl.addEventListener('click', () => {
+            fileInputEl.click();
         });
         
-        // Dark mode toggle
-        const darkModeFromStorage = localStorage.getItem('darkMode') === 'true';
-        darkModeToggleEl.checked = darkModeFromStorage;
-        if (darkModeFromStorage) {
-            document.body.classList.add('dark-mode');
-        }
-        
-        darkModeToggleEl.addEventListener('change', function() {
-            document.body.classList.toggle('dark-mode', this.checked);
-            localStorage.setItem('darkMode', this.checked);
-        });
-        
-        // File input handling
-        fileInputEl.addEventListener('change', function() {
-            if (this.files.length > 0) {
-                fileNameEl.textContent = this.files[0].name;
-            } else {
-                fileNameEl.textContent = 'No file chosen';
+        fileInputEl.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                readFile(e.target.files[0]);
             }
         });
         
-        loadFileBtnEl.addEventListener('click', function() {
-            if (fileInputEl.files.length === 0) {
-                alert('Please select a file first.');
-                return;
-            }
+        dropzoneEl.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzoneEl.classList.add('highlight');
+        });
+        
+        dropzoneEl.addEventListener('dragleave', () => {
+            dropzoneEl.classList.remove('highlight');
+        });
+        
+        dropzoneEl.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzoneEl.classList.remove('highlight');
             
-            const file = fileInputEl.files[0];
+            if (e.dataTransfer.files.length > 0) {
+                readFile(e.dataTransfer.files[0]);
+            }
+        });
+        
+        function readFile(file) {
             const reader = new FileReader();
             
-            reader.onload = function(e) {
+            reader.onload = (e) => {
                 inputDataEl.value = e.target.result;
+                showParsingStatus(`File "${file.name}" loaded successfully.`);
+            };
+            
+            reader.onerror = () => {
+                showParsingStatus("Error reading file.", true);
             };
             
             reader.readAsText(file);
+        }
+        
+        // Function to show parsing status messages
+        function showParsingStatus(message, isError = false) {
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `parsing-status ${isError ? 'error' : 'info'}`;
+            statusDiv.textContent = message;
+            
+            // Add a close button
+            const closeBtn = document.createElement('button');
+            closeBtn.innerHTML = '&times;';
+            closeBtn.className = 'close-status';
+            closeBtn.onclick = () => {
+                if (statusDiv.parentNode) {
+                    statusDiv.parentNode.removeChild(statusDiv);
+                }
+            };
+            statusDiv.appendChild(closeBtn);
+            
+            // Add to status container
+            statusMessagesEl.appendChild(statusDiv);
+            
+            // Automatically remove after 10 seconds if it's not an error
+            if (!isError) {
+                setTimeout(() => {
+                    if (statusDiv.parentNode) {
+                        statusDiv.parentNode.removeChild(statusDiv);
+                    }
+                }, 10000);
+            }
+            
+            // Scroll to status
+            statusDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
+        // Validate input data format
+        function validateInputData(data) {
+            // Check if data is empty or too short
+            if (!data || data.length < 50) {
+                return { valid: false, message: "Input data is too short or empty." };
+            }
+            
+            const lines = data.split('\n');
+            
+            // Check for minimum number of lines
+            if (lines.length < 5) {
+                return { valid: false, message: "Input data has too few lines." };
+            }
+            
+            // Count tab-delimited lines
+            const tabDelimitedLines = lines.filter(line => line.includes('\t'));
+            if (tabDelimitedLines.length < 3) {
+                return { valid: false, message: "Input data doesn't appear to be in tab-delimited format." };
+            }
+            
+            // Try to identify date fields
+            const potentialDateLines = lines.filter(line => 
+                line.includes('/') || (line.includes('-') && !line.includes('--'))
+            );
+            
+            if (potentialDateLines.length < 2) {
+                return { valid: false, message: "No date information detected in the input data." };
+            }
+            
+            return { valid: true };
+        }
+        
+        // Detect column mappings from header row
+        function detectColumnMappings(headerRow) {
+            const fields = headerRow.split('\t');
+            const mapping = {
+                date: 0,
+                startTime: 1,
+                duration: 2,
+                jobId: 3,
+                shipDate: 4,
+                notes: 5,
+                status: 6,
+                customer: 7,
+                description: 8,
+                graphics: 9,
+                plates: 10,
+                dieId: 17,
+                plateCount: 19,
+                paperWidth: 20,
+                substrate: 21
+            };
+            
+            // Try to identify common column headers
+            for (let i = 0; i < fields.length; i++) {
+                const header = fields[i].toLowerCase().trim();
+                
+                if (/^date|^day/.test(header)) mapping.date = i;
+                if (/start|^time/.test(header)) mapping.startTime = i;
+                if (/duration|^run/.test(header)) mapping.duration = i;
+                if (/job(\s+)?id|order/.test(header)) mapping.jobId = i;
+                if (/ship|delivery|due/.test(header)) mapping.shipDate = i;
+                if (/note/.test(header)) mapping.notes = i;
+                if (/status/.test(header)) mapping.status = i;
+                if (/customer|client/.test(header)) mapping.customer = i;
+                if (/description|title/.test(header)) mapping.description = i;
+                if (/graphics|artwork/.test(header)) mapping.graphics = i;
+                if (/plates?/.test(header)) mapping.plates = i;
+                if (/die(\s+)?id/.test(header)) mapping.dieId = i;
+                if (/count|number of plates/.test(header)) mapping.plateCount = i;
+                if (/width/.test(header)) mapping.paperWidth = i;
+                if (/substrate|material/.test(header)) mapping.substrate = i;
+            }
+            
+            return mapping;
+        }
+        
+        // Helper function to check if a string might be a date in various formats
+        function isValidDateField(dateStr) {
+            if (!dateStr) return false;
+            
+            // Check for common date patterns
+            const datePatterns = [
+                /\d{1,2}\/\d{1,2}\/\d{2,4}/,  // MM/DD/YY or MM/DD/YYYY
+                /\d{1,2}-\d{1,2}-\d{2,4}/,    // MM-DD-YY or MM-DD-YYYY
+                /\d{1,2}\.\d{1,2}\.\d{2,4}/,  // MM.DD.YY or MM.DD.YYYY
+                /\d{4}-\d{1,2}-\d{1,2}/       // YYYY-MM-DD (ISO format)
+            ];
+            
+            for (const pattern of datePatterns) {
+                if (pattern.test(dateStr)) {
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+        
+        // Tab functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
         });
         
-        // Sample data loading
-        loadSampleBtnEl.addEventListener('click', function() {
-            const sampleData = `PRESS_SMAG_1
-Date\tStart Time\tDuration\tJob ID\tShip Date\tNotes\tStatus\tCustomer\tDescription\tGraphics\tPlates\tNew/Repeat\tRollStock\tFinishing\tDie ID\tMachine\tScratch Quantity\tPlate Count\tPaper Width\tSubstrate\tFull Substrate\tTotal Footage
-3/11/2025\t10:21\t1:53\tJ-61030\t3/21/2025\t\tFreshFoods\tLabel\t4.25"\tBOPP\tBOPP 2mil\tRepeat\t10000\tRegular\tPRESS_SMAG_1\tProduct\t4\tD-1006
-3/15/2025\t8:54\t1:36\tJ-30550\t3/26/2025\t\tGreenPackaging\tLabel\t4.25"\tPET\tPET 2mil\tRepeat\t10000\tRegular\tPRESS_SMAG_1\tProduct\t1\tD-1004
-3/8/2025\t10:59\t2:08\tJ-57039\t3/24/2025\t\tAcme Foods\tLabel\t4.25"\tVinyl\tVinyl 2mil\tRepeat\t10000\tRegular\tPRESS_SMAG_1\tProduct\t4\tD-1007
-3/8/2025\t15:57\t3:37\tJ-33733\t3/29/2025\t\tBioProducts\tLabel\t4.25"\tPP\tPP 2mil\tRepeat\t10000\tRegular\tPRESS_SMAG_1\tProduct\t4\tD-1004
-3/28/2025\t13:19\t1:32\tJ-61064\t4/8/2025\t\tTechCorp\tLabel\t4.25"\tBOPP\tBOPP 2mil\tRepeat\t10000\tRegular\tPRESS_SMAG_1\tProduct\t4\tD-1006
-3/12/2025\t11:25\t1:44\tJ-14478\t3/16/2025\t\tTechCorp\tLabel\t4.25"\tBOPP\tBOPP 2mil\tRepeat\t10000\tRegular\tPRESS_SMAG_1\tProduct\t1\tD-1002
-3/27/2025\t11:47\t1:59\tJ-37936\t4/11/2025\t\tGreenPackaging\tLabel\t4.25"\tPP\tPP 2mil\tRepeat\t10000\tRegular\tPRESS_SMAG_1\tProduct\t1\tD-1003
-3/12/2025\t15:12\t3:11\tJ-21917\t3/31/2025\t\tFreshFoods\tLabel\t4.25"\tVinyl\tVinyl 2mil\tRepeat\t10000\tRegular\tPRESS_SMAG_1\tProduct\t1\tD-1004
-3/21/2025\t11:07\t3:56\tJ-68676\t3/30/2025\t\tBioProducts\tLabel\t4.25"\tPET\tPET 2mil\tRepeat\t10000\tRegular\tPRESS_SMAG_1\tProduct\t1\tD-1003
-3/24/2025\t15:19\t3:48\tJ-55103\t3/23/2025\t\tTechCorp\tLabel\t4.25"\tPP\tPP 2mil\tRepeat\t10000\tRegular\tPRESS_SMAG_1\tProduct\t3\tD-1007
-PRESS_ROTO_1
-Date\tStart Time\tDuration\tJob ID\tShip Date\tNotes\tStatus\tCustomer\tDescription\tGraphics\tPlates\tNew/Repeat\tRollStock\tFinishing\tDie ID\tMachine\tScratch Quantity\tPlate Count\tPaper Width\tSubstrate\tFull Substrate\tTotal Footage
-3/14/2025\t09:30\t2:15\tJ-72145\t3/28/2025\t\tBioProducts\tUPC Label\t3.50"\tPET\tPET 1mil\tRepeat\t5000\tPremium\tPRESS_ROTO_1\tProduct\t2\tD-1010
-3/15/2025\t13:45\t1:50\tJ-72155\t3/29/2025\t\tFreshFoods\tInfo Label\t4.00"\tPaper\tPremium Paper\tNew\t8000\tStandard\tPRESS_ROTO_1\tProduct\t3\tD-1012
-3/16/2025\t08:15\t3:25\tJ-72160\t3/30/2025\t\tTechCorp\tWarning Label\t5.00"\tVinyl\tVinyl 3mil\tRepeat\t2000\tUltra\tPRESS_ROTO_1\tProduct\t1\tD-1010`;
-            
-            // Set the sample data in the textarea
-            inputDataEl.value = sampleData;
-        });
+        // Get changeover times
+        function getChangeoverTimes() {
+            return {
+                die: parseInt(dieTimeEl.value) || 15,
+                material: parseInt(materialTimeEl.value) || 10,
+                colorPerPlate: parseInt(colorTimeEl.value) || 3
+            };
+        }
         
-        // Clear button - completely reset the application state
-        clearBtnEl.addEventListener('click', function() {
-            // Clear input data
-            inputDataEl.value = '';
+        // Enhanced date parsing function with multiple format support
+        function parseDate(dateStr) {
+            if (!dateStr) return null;
             
-            // Reset analysis summary
-            analysisSummaryEl.innerHTML = 'Paste data and click "Analyze Schedule Data" to begin.';
+            // Clean up the date string
+            dateStr = dateStr.trim();
             
-            // Clear job data
-            originalJobs = [];
-            optimizedJobs = [];
-            pressTypes = [];
-            selectedPresses = [];
-            
-            // Clear tables
-            originalTableEl.querySelector('tbody').innerHTML = '';
-            optimizedTableEl.querySelector('tbody').innerHTML = '';
-            
-            // Clear stats
-            optimizationStatsEl.innerHTML = '';
-            
-            // Clear press selectors
-            pressSelectorsEl.innerHTML = '';
-            
-            // Hide results
-            resultTabsEl.style.display = 'none';
-            
-            // Disable buttons
-            optimizeBtnEl.disabled = true;
-            exportBtnEl.disabled = true;
-            downloadBtnEl.disabled = true;
-            
-            // Reset file input
-            fileInputEl.value = '';
-            fileNameEl.textContent = 'No file chosen';
-            
-            // Clear timeline
-            timelineContainerEl.innerHTML = '';
-        });
-        
-        // Event Handlers
-        analyzeBtnEl.addEventListener('click', () => {
-            // Show loading indicator
-            analysisSummaryEl.innerHTML = '<div class="loading">Analyzing data...</div>';
-            
-            // Short delay to let the loading indicator display
-            setTimeout(() => {
-                try {
-                    const data = inputDataEl.value;
-                    if (!data || data.trim() === '') {
-                        analysisSummaryEl.innerHTML = '<div class="error">Please paste schedule data first or load sample data!</div>';
-                        return;
+            // Try MM/DD/YYYY or MM/DD/YY
+            if (dateStr.includes('/')) {
+                const parts = dateStr.split('/');
+                if (parts.length === 3) {
+                    let year = parseInt(parts[2]);
+                    // Adjust two-digit years
+                    if (year < 100) {
+                        year += year < 50 ? 2000 : 1900;
                     }
                     
-                    // Parse data with robust error handling
-                    originalJobs = parseScheduleData(data);
+                    const month = parseInt(parts[0]) - 1;
+                    const day = parseInt(parts[1]);
                     
-                    if (originalJobs.length === 0) {
-                        analysisSummaryEl.innerHTML = `
-                            <div class="error">
-                                <h3>No valid job data found.</h3>
-                                <p>Please check your input and ensure it contains:</p>
-                                <ul>
-                                    <li>Date information (MM/DD/YYYY format)</li>
-                                    <li>Job details with proper column separators (tabs or commas)</li>
-                                    <li>Header row with column names (optional but helpful)</li>
-                                </ul>
-                                <p>Or try loading the sample data for reference.</p>
-                            </div>
-                        `;
-                        return;
+                    return new Date(year, month, day);
+                }
+            }
+            
+            // Try MM-DD-YYYY or MM-DD-YY
+            if (dateStr.includes('-')) {
+                const parts = dateStr.split('-');
+                if (parts.length === 3) {
+                    // Check if it's ISO format (YYYY-MM-DD)
+                    if (parts[0].length === 4) {
+                        const year = parseInt(parts[0]);
+                        const month = parseInt(parts[1]) - 1;
+                        const day = parseInt(parts[2]);
+                        return new Date(year, month, day);
+                    } else {
+                        let year = parseInt(parts[2]);
+                        if (year < 100) {
+                            year += year < 50 ? 2000 : 1900;
+                        }
+                        const month = parseInt(parts[0]) - 1;
+                        const day = parseInt(parts[1]);
+                        return new Date(year, month, day);
                     }
-                    
-                    // Display analysis with count of successfully processed jobs
-                    analysisSummaryEl.innerHTML = `
-                        <div class="success-message">
-                            <p>✓ Successfully processed ${originalJobs.length} jobs</p>
-                        </div>
-                        ${createAnalysisSummary(originalJobs)}
-                    `;
-                    
-                    // Create press selectors
-                    createPressSelectors();
-                    
-                    // Display original schedule
-                    displayOriginalSchedule();
-                    
-                    // Show tabs
-                    resultTabsEl.style.display = 'flex';
-                    
-                    // Enable optimize button
-                    optimizeBtnEl.disabled = false;
-                    exportBtnEl.disabled = false;
-                    downloadBtnEl.disabled = false;
-                    
-                    // Scroll to analysis results
-                    analysisSummaryEl.scrollIntoView({behavior: 'smooth'});
-                } catch (error) {
-                    console.error("Error during analysis:", error);
-                    analysisSummaryEl.innerHTML = `
-                        <div class="error">
-                            <h3>Error analyzing data</h3>
-                            <p>An unexpected error occurred: ${error.message}</p>
-                            <p>Please check your input format and try again.</p>
-                        </div>
-                    `;
                 }
-            }, 100);
-        });
-        
-        optimizeBtnEl.addEventListener('click', function() {
-            if (originalJobs.length === 0) {
-                alert('Please analyze schedule data first.');
-                return;
             }
             
-            // Show loading indicator
-            optimizationStatsEl.innerHTML = '<div class="loading">Optimizing schedule...</div>';
-            
-            setTimeout(() => {
-                try {
-                    // Get visible jobs
-                    const visibleJobs = getVisibleJobs(originalJobs);
-                    
-                    // Optimize the schedule
-                    optimizedJobs = optimizeSchedule(visibleJobs);
-                    
-                    // Display optimized schedule
-                    displayOptimizedSchedule();
-                    
-                    // Switch to optimized tab
-                    tabsEl.forEach(t => t.classList.remove('active'));
-                    tabContentsEl.forEach(tc => tc.classList.remove('active'));
-                    
-                    document.querySelector('.tab[data-tab="optimized"]').classList.add('active');
-                    document.getElementById('optimizedSchedule').classList.add('active');
-                    
-                    // Scroll to results
-                    document.getElementById('optimizedSchedule').scrollIntoView({behavior: 'smooth'});
-                } catch (error) {
-                    console.error("Error during optimization:", error);
-                    optimizationStatsEl.innerHTML = `
-                        <div class="error">
-                            <h3>Error optimizing schedule</h3>
-                            <p>An unexpected error occurred: ${error.message}</p>
-                        </div>
-                    `;
+            // Try MM.DD.YYYY or MM.DD.YY
+            if (dateStr.includes('.')) {
+                const parts = dateStr.split('.');
+                if (parts.length === 3) {
+                    let year = parseInt(parts[2]);
+                    if (year < 100) {
+                        year += year < 50 ? 2000 : 1900;
+                    }
+                    const month = parseInt(parts[0]) - 1;
+                    const day = parseInt(parts[1]);
+                    return new Date(year, month, day);
                 }
-            }, 100);
-        });
-        
-        exportBtnEl.addEventListener('click', function() {
-            if (originalJobs.length === 0) {
-                alert('Please analyze schedule data first.');
-                return;
             }
             
-            // Get all jobs, including optimized if available
-            const jobsToExport = optimizedJobs.length > 0 ? optimizedJobs : originalJobs;
-            
-            // Get visible jobs
-            const visibleJobs = getVisibleJobs(jobsToExport);
-            
-            // Sort jobs by press
-            visibleJobs.sort((a, b) => a.press.localeCompare(b.press));
-            
-            // Convert to CSV format
-            let csv = 'Press,Date,Start Time,Duration,Job ID,Ship Date,Customer,Die ID,Substrate,Plate Count\n';
-            
-            visibleJobs.forEach(job => {
-                csv += `${job.press},${job.date},${job.startTime},${job.duration},${job.jobId},${job.shipmentDate},${job.customer},${job.dieId},${job.substrate},${job.plateCount}\n`;
-            });
-            
-            // Copy to clipboard
-            const textArea = document.createElement('textarea');
-            textArea.value = csv;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            
-            alert('Schedule copied to clipboard!');
-        });
-        
-        downloadBtnEl.addEventListener('click', function() {
-            if (originalJobs.length === 0) {
-                alert('Please analyze schedule data first.');
-                return;
+            // Try other date formats or use Date.parse as a fallback
+            const parsed = new Date(dateStr);
+            if (!isNaN(parsed.getTime())) {
+                return parsed;
             }
             
-            // Get all jobs, including optimized if available
-            const jobsToExport = optimizedJobs.length > 0 ? optimizedJobs : originalJobs;
-            
-            // Get visible jobs
-            const visibleJobs = getVisibleJobs(jobsToExport);
-            
-            // Sort jobs by press
-            visibleJobs.sort((a, b) => a.press.localeCompare(b.press));
-            
-            // Convert to CSV format
-            let csv = 'Press,Date,Start Time,Duration,Job ID,Ship Date,Customer,Die ID,Substrate,Plate Count\n';
-            
-            visibleJobs.forEach(job => {
-                csv += `${job.press},${job.date},${job.startTime},${job.duration},${job.jobId},${job.shipmentDate},${job.customer},${job.dieId},${job.substrate},${job.plateCount}\n`;
-            });
-            
-            // Create download link
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.setAttribute('hidden', '');
-            a.setAttribute('href', url);
-            a.setAttribute('download', 'optimized_schedule.csv');
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        });
+            return null;
+        }
         
-        // Parse schedule data from text input
+        // Format date for display
+        function formatDate(date) {
+            if (!date) return '';
+            return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+        }
+        
+        // Calculate days between two dates
+        function daysBetween(date1, date2) {
+            if (!date1 || !date2) return 0;
+            const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
+            return Math.round(Math.abs((date1 - date2) / oneDay));
+        }
+        
+        // Parse job duration to minutes
+        function parseDuration(duration) {
+            if (!duration) return 0;
+            
+            // Handle different formats
+            if (typeof duration === 'number') {
+                return duration;
+            }
+            
+            if (duration.includes(':')) {
+                const parts = duration.split(':');
+                if (parts.length === 2) {
+                    return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+                } else if (parts.length === 3) {
+                    return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+                }
+            }
+            
+            // Try to parse as a number of minutes directly
+            const minutes = parseFloat(duration);
+            if (!isNaN(minutes)) {
+                return minutes;
+            }
+            
+            return 0;
+        }
+        
+        // Format duration for display
+        function formatDuration(minutes) {
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            return `${hours}:${mins.toString().padStart(2, '0')}`;
+        }
+        
+        // Get color complexity category
+        function getColorCategory(plateCount) {
+            if (!plateCount) return 'unknown';
+            
+            // Handle if plateCount is a string
+            let count = plateCount;
+            if (typeof plateCount === 'string') {
+                // Try to parse as a number
+                count = parseInt(plateCount.trim());
+                if (isNaN(count)) return 'unknown';
+            }
+            
+            if (count === 1) return 'single'; // Single color
+            if (count === 4) return 'process'; // 4-color process
+            if (count > 4) return 'complex'; // Complex (more than 4 colors)
+            return 'multi'; // Multiple colors but not 4-color process
+        }
+        
+        // Get css class for color category
+        function getColorClass(category) {
+            switch(category) {
+                case 'single': return 'single-color';
+                case 'process': return 'four-color';
+                case 'multi': return 'multi-color';
+                case 'complex': return 'complex-color';
+                default: return '';
+            }
+        }
+        
+        // Format color info display
+        function formatColorInfo(plateCount) {
+            if (!plateCount) return 'Unknown';
+            
+            const count = parseInt(plateCount);
+            const category = getColorCategory(plateCount);
+            let colorDot = '';
+            
+            switch(category) {
+                case 'single':
+                    colorDot = '<span class="dot color-1"></span>';
+                    return `${colorDot} ${count} color`;
+                case 'process':
+                    colorDot = '<span class="dot color-4"></span>';
+                    return `${colorDot} 4C Process`;
+                case 'multi':
+                    colorDot = '<span class="dot color-multi"></span>';
+                    return `${colorDot} ${count} colors`;
+                case 'complex':
+                    colorDot = '<span class="dot color-complex"></span>';
+                    return `${colorDot} ${count} colors`;
+                default:
+                    return plateCount;
+            }
+        }
+        
+        // Enhanced parse schedule data with robust detection
         function parseScheduleData(data) {
-            console.log("Parsing schedule data...");
-            
-            // Split by lines and filter out empty lines
-            const lines = data.trim().split(/\r?\n/).filter(line => line.trim() !== '');
+            const lines = data.split('\n');
             const jobs = [];
             pressTypes = [];
             
-            // Variables to track state
             let currentPress = "";
-            let headerRow = null;
             let headerRowIndex = -1;
-            let columnMap = {}; // Maps column names to indices
+            let headerFields = [];
+            let dateColumnIndex = 0;
+            let shipDateColumnIndex = 4;  // Default position
+            let jobIdColumnIndex = 3;     // Default position
+            let dieIdColumnIndex = 17;    // Default position
+            let plateCountColumnIndex = 19; // Default position
+            let substrateColumnIndex = 21;  // Default position
+            let columnMapping = null;
             
-            // Detect data format based on content
-            for (let i = 0; i < Math.min(15, lines.length); i++) {
-                const line = lines[i].trim();
-                
-                // Check if line might be a press header (simple text with no tabs/commas)
-                if (/^[A-Z0-9_]+$/.test(line) || line.includes('SMAG') || line.includes('ROTO') || 
-                    line.includes('MA_P7') || line.includes('T-180') || /^PRESS_/.test(line)) {
-                    currentPress = line.trim();
-                    console.log("Found press header:", currentPress);
-                    
-                    if (!pressTypes.includes(currentPress)) {
-                        pressTypes.push(currentPress);
-                    }
-                    continue;
-                }
-                
-                // Check if this might be a header row
-                if ((line.toLowerCase().includes('date') && 
-                     line.toLowerCase().includes('time') && 
-                     (line.toLowerCase().includes('job') || line.toLowerCase().includes('id'))) ||
-                    (line.toLowerCase().includes('date') && line.toLowerCase().includes('start'))) {
-                    headerRow = line;
-                    headerRowIndex = i;
-                    console.log("Found header row at line", i + 1);
-                    break;
-                }
-            }
-            
-            // If no header row found, try to be smart about it
-            if (!headerRow) {
-                console.log("No standard header row found, attempting to infer format...");
-                
-                // Look for any line with date pattern to guess if it's job data
-                for (let i = 0; i < Math.min(20, lines.length); i++) {
-                    const line = lines[i].trim();
-                    // Check for date pattern like MM/DD/YYYY
-                    if (/\d{1,2}\/\d{1,2}\/\d{2,4}/.test(line)) {
-                        console.log("Found date pattern in line:", i + 1);
-                        headerRowIndex = i - 1; // Assume previous line might be header
-                        if (headerRowIndex < 0) headerRowIndex = 0;
-                        break;
-                    }
-                }
-            }
-            
-            // Determine the most likely separator (tab or comma)
-            let separator = '\t'; // Default to tab
-            if (headerRow) {
-                // Count tabs vs commas to determine likely separator
-                const tabCount = (headerRow.match(/\t/g) || []).length;
-                const commaCount = (headerRow.match(/,/g) || []).length;
-                
-                if (commaCount > tabCount) {
-                    separator = ',';
-                }
-                
-                console.log(`Detected separator: ${separator === '\t' ? 'tab' : 'comma'}`);
-                
-                // Create column mapping from header
-                const headers = headerRow.split(separator);
-                
-                // Map column headers to indices
-                headers.forEach((header, index) => {
-                    const normalizedHeader = header.trim().toLowerCase();
-                    columnMap[normalizedHeader] = index;
-                });
-                
-                console.log("Detected columns:", Object.keys(columnMap));
-            } else {
-                // Default column mapping for different possible formats
-                columnMap = {
-                    "date": 0,
-                    "start time": 1,
-                    "duration": 2,
-                    "job id": 3,
-                    "ship date": 4,
-                    "notes": 5,
-                    "status": 6,
-                    "customer": 7,
-                    "description": 8,
-                    "graphics": 9,
-                    "plates": 10,
-                    "die id": 14,
-                    "plate count": 17,
-                    "substrate": 19
-                };
-            }
-            
-            // Function to safely get field value with fallbacks
-            function getField(fields, keyNames, defaultValue = '') {
-                // Try each possible key name
-                for (const key of keyNames) {
-                    const index = columnMap[key.toLowerCase()];
-                    if (index !== undefined && index < fields.length && fields[index]) {
-                        return fields[index];
-                    }
-                }
-                
-                // Fallback: Try to find by similar column name
-                const allKeywords = keyNames.join(' ').toLowerCase();
-                const similarKeys = Object.keys(columnMap).filter(k => 
-                    allKeywords.includes(k) || k.includes(allKeywords));
-                
-                if (similarKeys.length > 0) {
-                    const index = columnMap[similarKeys[0]];
-                    if (index !== undefined && index < fields.length) {
-                        return fields[index];
-                    }
-                }
-                
-                return defaultValue;
-            }
-            
-            // Process each line
-            console.log("Processing lines...");
+            // First pass - identify header rows and press headers
             for (let i = 0; i < lines.length; i++) {
-                // Skip header row
-                if (i === headerRowIndex) continue;
-                
                 const line = lines[i].trim();
                 if (line === '') continue;
                 
-                // Check if line is a press header
-                if (/^[A-Z0-9_]+$/.test(line) || line.includes('SMAG') || line.includes('ROTO') || 
-                    line.includes('MA_P7') || line.includes('T-180') || /^PRESS_/.test(line) ||
-                    /^\d+_\d+_/.test(line)) {
+                // Expanded press header detection with more patterns
+                const pressHeaderRegex = /(_SMAG|_ROTO|_MA_P7|_T-180|Press|Machine|^[A-Z0-9]+-[A-Z0-9]+$)/i;
+                if (pressHeaderRegex.test(line) && !line.includes('\t')) {
                     currentPress = line.trim();
                     
                     // Add to press types if not already there
@@ -1111,71 +829,185 @@ Date\tStart Time\tDuration\tJob ID\tShip Date\tNotes\tStatus\tCustomer\tDescript
                         pressTypes.push(currentPress);
                     }
                     
+                    // Mark the next non-empty line as potential header
+                    headerRowIndex = -1;
                     continue;
                 }
                 
-                // Skip header row variations
-                if (line.startsWith('Date') || line.startsWith('Calculation')) continue;
+                // Detect header row - look for common header column names
+                if (line.match(/Date|Start|Job ID|Duration|Time|Customer|Status|Description/i) && 
+                    line.split('\t').length > 5) {
+                    headerRowIndex = i;
+                    headerFields = line.split('\t');
+                    
+                    // Determine column positions based on header fields
+                    columnMapping = detectColumnMappings(line);
+                    dateColumnIndex = columnMapping.date;
+                    shipDateColumnIndex = columnMapping.shipDate;
+                    jobIdColumnIndex = columnMapping.jobId;
+                    dieIdColumnIndex = columnMapping.dieId;
+                    plateCountColumnIndex = columnMapping.plateCount;
+                    substrateColumnIndex = columnMapping.substrate;
+                }
+            }
+            
+            // If no press types found, add a default
+            if (pressTypes.length === 0) {
+                pressTypes.push("Default Press");
+                currentPress = "Default Press";
+            }
+            
+            // Second pass - process job data with the knowledge of headers
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (line === '') continue;
                 
-                // Determine the separator for this line
-                let lineSeparator = separator;
-                if (line.includes('\t') && separator !== '\t') {
-                    lineSeparator = '\t';
-                } else if (line.includes(',') && separator !== ',') {
-                    lineSeparator = ',';
+                // Skip press header lines and header row
+                if (pressTypes.includes(line) || i === headerRowIndex) continue;
+                
+                const fields = line.split('\t');
+                
+                // Process only if we have enough data
+                if (fields.length > 5) {
+                    // More flexible date detection
+                    const hasDate = fields.length > dateColumnIndex && isValidDateField(fields[dateColumnIndex]);
+                    
+                    if (hasDate) {
+                        try {
+                            // Create job object with mapped fields
+                            const job = {
+                                press: currentPress,
+                                date: fields[dateColumnIndex],
+                                dateObj: parseDate(fields[dateColumnIndex]),
+                                startTime: fields.length > 1 ? fields[1] : '',
+                                duration: fields.length > 2 ? fields[2] : '',
+                                durationMinutes: fields.length > 2 ? parseDuration(fields[2]) : 0,
+                                jobId: fields.length > jobIdColumnIndex ? fields[jobIdColumnIndex] : '',
+                                shipmentDate: fields.length > shipDateColumnIndex ? fields[shipDateColumnIndex] : '',
+                                shipDateObj: fields.length > shipDateColumnIndex ? parseDate(fields[shipDateColumnIndex]) : null,
+                                notes: fields.length > 5 ? fields[5] : '',
+                                status: fields.length > 6 ? fields[6] : '',
+                                customer: fields.length > 7 ? fields[7] : '',
+                                description: fields.length > 8 ? fields[8] : '',
+                                graphics: fields.length > 9 ? fields[9] : '',
+                                plates: fields.length > 10 ? fields[10] : '',
+                                plateCount: fields.length > plateCountColumnIndex ? fields[plateCountColumnIndex] : '0',
+                                paperWidth: fields.length > 20 ? fields[20] : '',
+                                substrate: fields.length > substrateColumnIndex ? fields[substrateColumnIndex] : '',
+                                fullSubstrate: fields.length > (substrateColumnIndex + 1) ? fields[substrateColumnIndex + 1] : '',
+                                dieId: fields.length > dieIdColumnIndex ? fields[dieIdColumnIndex] : '',
+                                colorCategory: fields.length > plateCountColumnIndex ? getColorCategory(fields[plateCountColumnIndex]) : 'unknown',
+                                optimized: false
+                            };
+                            
+                            // Calculate urgency based on ship date
+                            if (job.shipDateObj) {
+                                const daysToShip = daysBetween(today, job.shipDateObj);
+                                job.daysToShip = daysToShip;
+                                job.isUrgent = daysToShip <= 3;
+                                job.isApproachingDue = daysToShip <= 7 && daysToShip > 3;
+                            }
+                            
+                            jobs.push(job);
+                        } catch (e) {
+                            console.error(`Error parsing job data at line ${i+1}: ${e.message}`);
+                        }
+                    }
+                }
+            }
+            
+            // If we couldn't detect any jobs, try a more lenient approach
+            if (jobs.length === 0) {
+                console.log("No jobs detected with standard parsing. Trying lenient mode...");
+                return parseLenientScheduleData(data);
+            }
+            
+            return jobs;
+        }
+        
+        // Lenient parsing mode as a fallback
+        function parseLenientScheduleData(data) {
+            const lines = data.split('\n');
+            const jobs = [];
+            pressTypes = ["Unknown Press"];
+            
+            let currentPress = "Unknown Press";
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (line === '' || line.length < 10) continue;
+                
+                const fields = line.split('\t');
+                
+                // Try to identify a date field in any column
+                let dateCol = -1;
+                let shipDateCol = -1;
+                let jobIdCol = -1;
+                let customerCol = -1;
+                let dieIdCol = -1;
+                let plateCountCol = -1;
+                let substrateCol = -1;
+                
+                // First look for date columns
+                for (let j = 0; j < Math.min(fields.length, 15); j++) {
+                    if (isValidDateField(fields[j])) {
+                        if (dateCol === -1) {
+                            dateCol = j;
+                        } else {
+                            shipDateCol = j;
+                            break;
+                        }
+                    }
                 }
                 
-                const fields = line.split(lineSeparator);
+                // Try to find other key columns
+                for (let j = 0; j < fields.length; j++) {
+                    const field = fields[j];
+                    
+                    // Look for job ID (alphanumeric with possible dashes, typically 5+ chars)
+                    if (jobIdCol === -1 && /^[A-Z0-9-]{5,}$/i.test(field)) {
+                        jobIdCol = j;
+                    }
+                    
+                    // Look for customer (any word with 3+ chars, not just numbers)
+                    if (customerCol === -1 && field.length > 3 && !/^\d+$/.test(field)) {
+                        customerCol = j;
+                    }
+                    
+                    // Look for die ID (often 6 digits)
+                    if (dieIdCol === -1 && /^\d{5,6}$/.test(field)) {
+                        dieIdCol = j;
+                    }
+                    
+                    // Look for plate count (1-2 digits)
+                    if (plateCountCol === -1 && /^[0-9]{1,2}$/.test(field)) {
+                        plateCountCol = j;
+                    }
+                    
+                    // Look for substrate (contains material-related keywords)
+                    if (substrateCol === -1 && /mil|paper|polyester|vinyl|kraft|film/i.test(field)) {
+                        substrateCol = j;
+                    }
+                }
                 
-                // Check if this line looks like it contains job data
-                // Look for date pattern instead of relying on specific field count
-                const potentialDateField = fields[0];
-                const hasDate = potentialDateField && 
-                              (/\d{1,2}\/\d{1,2}\/\d{2,4}/.test(potentialDateField) ||
-                               /\d{4}-\d{1,2}-\d{1,2}/.test(potentialDateField));
-                
-                if (fields.length > 3 && hasDate) {
+                if (dateCol !== -1) {
                     try {
+                        // Build a job with minimal required information and our best guesses
                         const job = {
                             press: currentPress,
-                            date: getField(fields, ['date'], ''),
-                            dateObj: parseDate(getField(fields, ['date'], '')),
-                            startTime: getField(fields, ['start time', 'start'], ''),
-                            duration: getField(fields, ['duration'], ''),
-                            durationMinutes: parseDuration(getField(fields, ['duration'], '')),
-                            jobId: getField(fields, ['job id', 'jobid', 'job'], ''),
-                            shipmentDate: getField(fields, ['ship date', 'shipment date', 'shipdate'], ''),
-                            shipDateObj: parseDate(getField(fields, ['ship date', 'shipment date', 'shipdate'], '')),
-                            notes: getField(fields, ['notes', 'sch notes'], ''),
-                            status: getField(fields, ['status', 'status value'], ''),
-                            customer: getField(fields, ['customer', 'customer keyword'], ''),
-                            description: getField(fields, ['description', 'job description'], ''),
-                            graphics: getField(fields, ['graphics'], ''),
-                            plates: getField(fields, ['plates'], ''),
-                            plateCount: getField(fields, ['plate count', 'no. of plates'], '0'),
-                            paperWidth: getField(fields, ['paper width'], ''),
-                            substrate: getField(fields, ['substrate', 'substrate keyword'], ''),
-                            dieId: getField(fields, ['die id', 'die', 'dieid'], ''),
-                            colorCategory: '',
+                            date: fields[dateCol],
+                            dateObj: parseDate(fields[dateCol]),
+                            jobId: jobIdCol !== -1 ? fields[jobIdCol] : `Job-${i}`,
+                            shipmentDate: shipDateCol !== -1 ? fields[shipDateCol] : '',
+                            shipDateObj: shipDateCol !== -1 ? parseDate(fields[shipDateCol]) : null,
+                            customer: customerCol !== -1 ? fields[customerCol] : 'Unknown',
+                            substrate: substrateCol !== -1 ? fields[substrateCol] : 'Unknown',
+                            plateCount: plateCountCol !== -1 ? fields[plateCountCol] : '0',
+                            dieId: dieIdCol !== -1 ? fields[dieIdCol] : '',
                             optimized: false
                         };
                         
-                        // If we're missing critical info, try to infer from other fields
-                        if (!job.press && currentPress) {
-                            job.press = currentPress;
-                        }
-                        
-                        // If jobId is missing, try to use the first numeric field as a fallback
-                        if (!job.jobId) {
-                            for (let j = 0; j < fields.length; j++) {
-                                if (fields[j] && /^\d+$/.test(fields[j])) {
-                                    job.jobId = fields[j];
-                                    break;
-                                }
-                            }
-                        }
-                        
-                        // Calculate color category based on plate count
+                        // Set color category
                         job.colorCategory = getColorCategory(job.plateCount);
                         
                         // Calculate urgency based on ship date
@@ -1186,198 +1018,698 @@ Date\tStart Time\tDuration\tJob ID\tShip Date\tNotes\tStatus\tCustomer\tDescript
                             job.isApproachingDue = daysToShip <= 7 && daysToShip > 3;
                         }
                         
-                        // Validate job data - ensure we have the minimum required fields
-                        if (job.date) {
-                            jobs.push(job);
-                        }
-                    } catch (error) {
-                        console.error("Error processing job data:", error, "Line:", line);
-                        // Continue processing other lines despite this error
+                        jobs.push(job);
+                    } catch (e) {
+                        console.error(`Error parsing job in lenient mode at line ${i+1}: ${e.message}`);
                     }
                 }
             }
             
-            console.log(`Successfully parsed ${jobs.length} jobs from ${lines.length} lines`);
             return jobs;
         }
         
-        function parseDate(dateStr) {
-            if (!dateStr) return null;
+        // Calculate changeover time between jobs
+        function calculateChangeover(prevJob, currentJob) {
+            if (!prevJob) return 0;
             
-            // Normalize the date string
-            dateStr = dateStr.trim();
+            const changeoverTime = getChangeoverTimes();
+            let changeoverMinutes = 0;
             
-            // Try to parse the date in MM/DD/YYYY format
-            let parts = dateStr.split('/');
-            if (parts.length === 3) {
-                let year = parseInt(parts[2]);
-                // Adjust two-digit years
-                if (year < 100) {
-                    year += year < 50 ? 2000 : 1900;
-                }
-                
-                // Month is 0-based in JavaScript Date
-                const month = parseInt(parts[0]) - 1;
-                const day = parseInt(parts[1]);
-                
-                return new Date(year, month, day);
+            // Check die change - highest priority
+            if (prevJob.dieId !== currentJob.dieId || prevJob.dieId === '' || currentJob.dieId === '') {
+                changeoverMinutes += changeoverTime.die;
             }
             
-            // Try DD/MM/YYYY format if MM/DD/YYYY fails
-            if (parts.length === 3) {
-                let year = parseInt(parts[2]);
-                if (year < 100) {
-                    year += year < 50 ? 2000 : 1900;
-                }
-                
-                const month = parseInt(parts[1]) - 1;
-                const day = parseInt(parts[0]);
-                
-                const date = new Date(year, month, day);
-                if (!isNaN(date.getTime())) {
-                    return date;
-                }
+            // Check material change
+            if (prevJob.substrate !== currentJob.substrate) {
+                changeoverMinutes += changeoverTime.material;
             }
             
-            // Try YYYY-MM-DD format
-            if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(dateStr)) {
-                parts = dateStr.split('-');
-                return new Date(
-                    parseInt(parts[0]), 
-                    parseInt(parts[1]) - 1, 
-                    parseInt(parts[2])
-                );
+            // Add time for color setup based on plate count differences
+            const prevPlateCount = parseInt(prevJob.plateCount) || 0;
+            const currentPlateCount = parseInt(currentJob.plateCount) || 0;
+            
+            // If going from simpler to more complex, add setup time for the difference
+            if (currentPlateCount > prevPlateCount) {
+                changeoverMinutes += (currentPlateCount - prevPlateCount) * changeoverTime.colorPerPlate;
+            } 
+            // If just changing colors but same count, add a smaller penalty
+            else if (currentPlateCount > 0 && prevPlateCount > 0 && currentPlateCount === prevPlateCount && 
+                    prevJob.colorCategory !== currentJob.colorCategory) {
+                changeoverMinutes += Math.floor(currentPlateCount * changeoverTime.colorPerPlate / 2);
             }
             
-            // Try DD-MM-YYYY format
-            if (/^\d{1,2}-\d{1,2}-\d{4}$/.test(dateStr)) {
-                parts = dateStr.split('-');
-                return new Date(
-                    parseInt(parts[2]), 
-                    parseInt(parts[1]) - 1, 
-                    parseInt(parts[0])
-                );
-            }
-            
-            // Try using the built-in date parser as a fallback
-            const parsed = new Date(dateStr);
-            if (!isNaN(parsed.getTime())) {
-                return parsed;
-            }
-            
-            return null;
+            return changeoverMinutes;
         }
         
-        function parseDuration(duration) {
-            if (!duration) return 0;
+        // Get changeover type between jobs
+        function getChangeoverType(prevJob, currentJob) {
+            if (!prevJob) return 'none';
             
-            // Try HH:MM format
-            const parts = duration.split(':');
-            if (parts.length === 2) {
-                return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
-            } else if (parts.length === 3) {
-                // HH:MM:SS format
-                return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+            // Same die is the most important factor
+            if (prevJob.dieId && currentJob.dieId && prevJob.dieId === currentJob.dieId) {
+                return 'low';
             }
             
-            // Try decimal hours format (e.g., 1.5 hours)
-            const decimalHours = parseFloat(duration);
-            if (!isNaN(decimalHours)) {
-                return Math.round(decimalHours * 60);
+            // Same substrate
+            if (prevJob.substrate === currentJob.substrate) {
+                return 'medium';
             }
             
-            return 0;
+            // Different die and substrate
+            return 'high';
         }
         
-        function getColorCategory(plateCount) {
-            if (!plateCount) return 'unknown';
-            
-            // Try to extract a number if it's not already a number
-            let count = plateCount;
-            if (typeof plateCount === 'string') {
-                const matches = plateCount.match(/\d+/);
-                if (matches) {
-                    count = parseInt(matches[0], 10);
-                } else {
-                    return 'unknown';
-                }
-            } else {
-                count = parseInt(plateCount, 10);
-            }
-            
-            if (isNaN(count)) return 'unknown';
-            
-            if (count === 1) return 'single'; // Single color
-            if (count === 4) return 'process'; // 4-color process
-            if (count > 4) return 'complex'; // Complex (more than 4 colors)
-            return 'multi'; // Multiple colors but not 4-color process
-        }
-        
-        function daysBetween(date1, date2) {
-            const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
-            return Math.round(Math.abs((date1 - date2) / oneDay));
-        }
-        
-        function getChangeoverTimes() {
-            return {
-                die: parseInt(dieTimeEl.value) || 15,
-                material: parseInt(materialTimeEl.value) || 10,
-                color: parseInt(colorTimeEl.value) || 3
-            };
-        }
-        
+        // Count job changeovers
         function countChangeovers(jobs) {
-            // Sort jobs by press and date
-            const sortedJobs = [...jobs].sort((a, b) => {
-                if (a.press !== b.press) {
-                    return a.press.localeCompare(b.press);
-                }
-                return a.dateObj - b.dateObj;
+            const pressBuckets = {};
+            pressTypes.forEach(press => {
+                pressBuckets[press] = jobs.filter(job => job.press === press);
             });
             
             let dieChanges = 0;
             let materialChanges = 0;
             let colorChanges = 0;
+            let totalChangeoverMinutes = 0;
             
-            // Analyze job by job
-            for (let i = 1; i < sortedJobs.length; i++) {
-                const prevJob = sortedJobs[i-1];
-                const currentJob = sortedJobs[i];
+            // Count changes for each press
+            Object.values(pressBuckets).forEach(pressJobs => {
+                let prevJob = null;
                 
-                // Skip if different press
-                if (prevJob.press !== currentJob.press) continue;
-                
-                // Check for die change
-                if (prevJob.dieId !== currentJob.dieId && prevJob.dieId && currentJob.dieId) {
-                    dieChanges++;
-                }
-                
-                // Check for material change
-                if (prevJob.substrate !== currentJob.substrate && prevJob.substrate && currentJob.substrate) {
-                    materialChanges++;
-                }
-                
-                // Check for color change (simplified)
-                if (prevJob.colorCategory !== currentJob.colorCategory) {
-                    colorChanges++;
-                }
-            }
-            
-            // Calculate total changeover time
-            const changeoverTimes = getChangeoverTimes();
-            const totalChangeoverMinutes = 
-                dieChanges * changeoverTimes.die + 
-                materialChanges * changeoverTimes.material + 
-                colorChanges * changeoverTimes.color;
+                pressJobs.forEach(job => {
+                    if (prevJob) {
+                        // Calculate changeover time
+                        const changeoverMinutes = calculateChangeover(prevJob, job);
+                        totalChangeoverMinutes += changeoverMinutes;
+                        
+                        // Count die changes
+                        if (prevJob.dieId !== job.dieId || prevJob.dieId === '' || job.dieId === '') {
+                            dieChanges++;
+                        }
+                        // Count material changes
+                        else if (prevJob.substrate !== job.substrate) {
+                            materialChanges++;
+                        }
+                        
+                        // Count color changes
+                        if (prevJob.colorCategory !== job.colorCategory) {
+                            colorChanges++;
+                        }
+                    }
+                    
+                    prevJob = job;
+                });
+            });
             
             return {
                 dieChanges,
                 materialChanges,
                 colorChanges,
+                totalChanges: dieChanges + materialChanges + colorChanges,
                 totalChangeoverMinutes
             };
         }
         
+        // Create press selectors
+        function createPressSelectors() {
+            // Create original schedule press selector
+            originalPressSelectorEl.innerHTML = '<label>Select Press: <select id="originalPressSelect"></select></label>';
+            const originalSelect = document.getElementById('originalPressSelect');
+            
+            // Add "All Presses" option
+            const allOption = document.createElement('option');
+            allOption.value = "all";
+            allOption.textContent = "All Presses";
+            originalSelect.appendChild(allOption);
+            
+            // Add each press as an option
+            pressTypes.forEach(press => {
+                const option = document.createElement('option');
+                option.value = press;
+                option.textContent = press;
+                originalSelect.appendChild(option);
+            });
+            
+            // Set default selection
+            currentOriginalPress = "all";
+            originalSelect.value = currentOriginalPress;
+            
+            // Add change event
+            originalSelect.addEventListener('change', () => {
+                currentOriginalPress = originalSelect.value;
+                displayOriginalSchedule();
+            });
+            
+            // Create optimized schedule press selector
+            optimizedPressSelectorEl.innerHTML = '<label>Select Press: <select id="optimizedPressSelect"></select></label>';
+            const optimizedSelect = document.getElementById('optimizedPressSelect');
+            
+            // Add "All Presses" option
+            const allOptOption = document.createElement('option');
+            allOptOption.value = "all";
+            allOptOption.textContent = "All Presses";
+            optimizedSelect.appendChild(allOptOption);
+            
+            // Add each press as an option
+            pressTypes.forEach(press => {
+                const option = document.createElement('option');
+                option.value = press;
+                option.textContent = press;
+                optimizedSelect.appendChild(option);
+            });
+            
+            // Set default selection
+            currentOptimizedPress = "all";
+            optimizedSelect.value = currentOptimizedPress;
+            
+            // Add change event
+            optimizedSelect.addEventListener('change', () => {
+                currentOptimizedPress = optimizedSelect.value;
+                displayOptimizedSchedule();
+            });
+        }
+        
+        // Display original schedule
+        function displayOriginalSchedule() {
+            originalTableEl.innerHTML = '';
+            
+            // Filter jobs by selected press
+            let displayJobs;
+            if (currentOriginalPress === "all") {
+                displayJobs = originalJobs;
+            } else {
+                displayJobs = originalJobs.filter(job => job.press === currentOriginalPress);
+            }
+            
+            // Sort by press, then date
+            displayJobs.sort((a, b) => {
+                if (a.press !== b.press) {
+                    return a.press.localeCompare(b.press);
+                }
+                if (!a.dateObj || !b.dateObj) return 0;
+                return a.dateObj - b.dateObj;
+            });
+            
+            let currentPress = "";
+            let prevJob = null;
+            
+            displayJobs.forEach(job => {
+                const tr = document.createElement('tr');
+                
+                // Add the color category class
+                tr.classList.add(getColorClass(job.colorCategory));
+                
+                // Add a press separator
+                if (job.press !== currentPress) {
+                    currentPress = job.press;
+                    prevJob = null;
+                    
+                    const separator = document.createElement('tr');
+                    separator.innerHTML = `<td colspan="8" style="background-color: #e9ecef; font-weight: bold;">${currentPress}</td>`;
+                    originalTableEl.appendChild(separator);
+                }
+                
+                // Calculate changeover time from previous job
+                const changeoverMinutes = calculateChangeover(prevJob, job);
+                const changeoverType = getChangeoverType(prevJob, job);
+                
+                // Set row class based on grouping
+                if (prevJob && prevJob.dieId && job.dieId && prevJob.dieId === job.dieId) {
+                    tr.classList.add('same-die');
+                } else if (prevJob && prevJob.substrate === job.substrate) {
+                    tr.classList.add('same-substrate');
+                } else if (prevJob && prevJob.plateCount === job.plateCount) {
+                    tr.classList.add('same-plates');
+                }
+                
+                // Add urgency class
+                if (job.isUrgent) {
+                    tr.classList.add('urgent');
+                } else if (job.isApproachingDue) {
+                    tr.classList.add('approach-due');
+                }
+                
+                // Create changeover indicator
+                let changeoverHtml = '';
+                if (changeoverMinutes > 0) {
+                    const indicatorClass = changeoverType === 'low' ? 'success' : 
+                                          changeoverType === 'medium' ? 'warning' : 'danger';
+                    changeoverHtml = `${changeoverMinutes} min`;
+                }
+                
+                tr.innerHTML = `
+                    <td>${job.jobId || 'N/A'}</td>
+                    <td>${job.date || 'N/A'}</td>
+                    <td class="ship-date">${job.shipmentDate || 'N/A'}</td>
+                    <td>${job.dieId || 'N/A'}</td>
+                    <td>${job.substrate || 'N/A'}</td>
+                    <td class="color-info">${formatColorInfo(job.plateCount)}</td>
+                    <td>${job.customer || 'N/A'}</td>
+                    <td>${changeoverHtml}</td>
+                `;
+                
+                originalTableEl.appendChild(tr);
+                
+                // Set this job as previous for next iteration
+                prevJob = job;
+            });
+        }
+        
+        // Display optimized schedule
+        function displayOptimizedSchedule() {
+            optimizedTableEl.innerHTML = '';
+            
+            // Filter jobs by selected press
+            let displayJobs;
+            if (currentOptimizedPress === "all") {
+                displayJobs = optimizedJobs;
+            } else {
+                displayJobs = optimizedJobs.filter(job => job.press === currentOptimizedPress);
+            }
+            
+            // Sort by press, then date
+            displayJobs.sort((a, b) => {
+                if (a.press !== b.press) {
+                    return a.press.localeCompare(b.press);
+                }
+                if (!a.dateObj || !b.dateObj) return 0;
+                return a.dateObj - b.dateObj;
+            });
+            
+            let currentPress = "";
+            let prevJob = null;
+            
+            displayJobs.forEach(job => {
+                const tr = document.createElement('tr');
+                
+                // Add the color category class
+                tr.classList.add(getColorClass(job.colorCategory));
+                
+                // Add a press separator
+                if (job.press !== currentPress) {
+                    currentPress = job.press;
+                    prevJob = null;
+                    
+                    const separator = document.createElement('tr');
+                    separator.innerHTML = `<td colspan="9" style="background-color: #e9ecef; font-weight: bold;">${currentPress}</td>`;
+                    optimizedTableEl.appendChild(separator);
+                }
+                
+                // Calculate changeover time from previous job
+                const changeoverMinutes = calculateChangeover(prevJob, job);
+                const changeoverType = getChangeoverType(prevJob, job);
+                
+                // Find corresponding job in original schedule
+                const originalIndex = originalJobs.findIndex(j => 
+                    j.press === job.press && j.jobId === job.jobId);
+                
+                // Find original previous job (if any)
+                let originalPrevJobIndex = -1;
+                if (originalIndex > 0) {
+                    // Look for the previous job with the same press
+                    for (let i = originalIndex - 1; i >= 0; i--) {
+                        if (originalJobs[i].press === job.press) {
+                            originalPrevJobIndex = i;
+                            break;
+                        }
+                    }
+                }
+                
+                // Calculate original changeover time
+                let originalChangeoverMinutes = 0;
+                if (originalPrevJobIndex >= 0) {
+                    originalChangeoverMinutes = calculateChangeover(
+                        originalJobs[originalPrevJobIndex], originalJobs[originalIndex]);
+                }
+                
+                // Calculate time saved
+                const timeSaved = originalChangeoverMinutes - changeoverMinutes;
+                
+                // Set row class based on grouping
+                if (prevJob && prevJob.dieId && job.dieId && prevJob.dieId === job.dieId) {
+                    tr.classList.add('same-die');
+                } else if (prevJob && prevJob.substrate === job.substrate) {
+                    tr.classList.add('same-substrate');
+                } else if (prevJob && prevJob.plateCount === job.plateCount) {
+                    tr.classList.add('same-plates');
+                }
+                
+                // Add urgency class
+                if (job.isUrgent) {
+                    tr.classList.add('urgent');
+                } else if (job.isApproachingDue) {
+                    tr.classList.add('approach-due');
+                }
+                
+                // Create changeover indicator
+                let changeoverHtml = '';
+                if (changeoverMinutes > 0) {
+                    const indicatorClass = changeoverType === 'low' ? 'success' : 
+                                          changeoverType === 'medium' ? 'warning' : 'danger';
+                    changeoverHtml = `${changeoverMinutes} min`;
+                }
+                
+                // Create savings indicator
+                let savingsHtml = '';
+                if (timeSaved > 0) {
+                    savingsHtml = `<span style="color: green;">-${timeSaved} min</span>`;
+                } else if (timeSaved < 0) {
+                    savingsHtml = `<span style="color: red;">+${Math.abs(timeSaved)} min</span>`;
+                }
+                
+                tr.innerHTML = `
+                    <td>${job.jobId || 'N/A'}</td>
+                    <td>${job.date || 'N/A'}</td>
+                    <td class="ship-date">${job.shipmentDate || 'N/A'}</td>
+                    <td>${job.dieId || 'N/A'}</td>
+                    <td>${job.substrate || 'N/A'}</td>
+                    <td class="color-info">${formatColorInfo(job.plateCount)}</td>
+                    <td>${job.customer || 'N/A'}</td>
+                    <td>${changeoverHtml}</td>
+                    <td>${savingsHtml}</td>
+                `;
+                
+                optimizedTableEl.appendChild(tr);
+                
+                // Set this job as previous for next iteration
+                prevJob = job;
+            });
+        }
+        
+        // Display press statistics
+        function createStatsSummary(originalJobs, optimizedJobs) {
+            const changeoverTime = getChangeoverTimes();
+            
+            // Calculate original statistics
+            const originalStats = countChangeovers(originalJobs);
+            
+            // Calculate optimized statistics
+            const optimizedStats = countChangeovers(optimizedJobs);
+            
+            // Calculate time savings
+            const dieReduction = originalStats.dieChanges - optimizedStats.dieChanges;
+            const materialReduction = originalStats.materialChanges - optimizedStats.materialChanges;
+            const colorReduction = originalStats.colorChanges - optimizedStats.colorChanges;
+            
+            const dieSavings = dieReduction * changeoverTime.die;
+            const materialSavings = materialReduction * changeoverTime.material;
+            const colorSavings = colorReduction * changeoverTime.colorPerPlate; // Simplified
+            
+            const totalSavings = dieSavings + materialSavings + colorSavings;
+            
+            const totalTimeOriginal = originalStats.totalChangeoverMinutes;
+            const totalTimeOptimized = optimizedStats.totalChangeoverMinutes;
+            
+            // Calculate percentage reduction
+            let percentReduction = 0;
+            if (totalTimeOriginal > 0) {
+                percentReduction = Math.round((totalSavings / totalTimeOriginal) * 100);
+            }
+            
+            // Create stat cards
+            statsContainerEl.innerHTML = `
+                <div class="stat-card">
+                    <div>Changeover Time Reduction</div>
+                    <div class="stat-value">${percentReduction}%</div>
+                </div>
+                <div class="stat-card">
+                    <div>Setup Time Saved</div>
+                    <div class="stat-value">${totalSavings} min</div>
+                </div>
+                <div class="stat-card">
+                    <div>Die Changes</div>
+                    <div class="stat-value">${optimizedStats.dieChanges} <span class="${dieReduction >= 0 ? 'positive' : 'negative'}">(${dieReduction >= 0 ? '-' : '+'}${Math.abs(dieReduction)})</span></div>
+                </div>
+                <div class="stat-card">
+                    <div>Material Changes</div>
+                    <div class="stat-value">${optimizedStats.materialChanges} <span class="${materialReduction >= 0 ? 'positive' : 'negative'}">(${materialReduction >= 0 ? '-' : '+'}${Math.abs(materialReduction)})</span></div>
+                </div>
+            `;
+            
+            // Create summary text
+            optimizationSummaryEl.innerHTML = `
+                <h3>Detailed Savings Breakdown</h3>
+                <ul>
+                    <li><strong>Die Changes:</strong> ${originalStats.dieChanges} → ${optimizedStats.dieChanges} (${dieReduction >= 0 ? 'Saved' : 'Added'} ${Math.abs(dieReduction)} changes = ${Math.abs(dieSavings)} minutes)</li>
+                    <li><strong>Material Changes:</strong> ${originalStats.materialChanges} → ${optimizedStats.materialChanges} (${materialReduction >= 0 ? 'Saved' : 'Added'} ${Math.abs(materialReduction)} changes = ${Math.abs(materialSavings)} minutes)</li>
+                    <li><strong>Color Setup Optimizations:</strong> ${originalStats.colorChanges} → ${optimizedStats.colorChanges} (Saved approximately ${Math.abs(colorSavings)} minutes)</li>
+                    <li><strong>Total Changeover Time:</strong> ${totalTimeOriginal} → ${totalTimeOptimized} minutes</li>
+                    <li><strong>Net Time Saved:</strong> ${totalSavings} minutes (${Math.floor(totalSavings/60)} hours and ${totalSavings % 60} minutes)</li>
+                </ul>
+                <h3>Material Savings</h3>
+                <p>By reducing material changes from ${originalStats.materialChanges} to ${optimizedStats.materialChanges}, you'll save considerable material that would otherwise be wasted during setup.</p>
+                <p>Each material change typically requires test runs to ensure proper printing, resulting in wasted material. This optimization helps minimize this waste.</p>
+                <h3>Optimization Method</h3>
+                <p>The schedule was optimized with these priorities:</p>
+                <ol>
+                    <li><strong>Die Continuity:</strong> Jobs with the same die are grouped together to minimize time-consuming die changes</li>
+                    <li><strong>Material Batching:</strong> Jobs with the same substrate are grouped to reduce material waste</li>
+                    <li><strong>Color Progression:</strong> Jobs are arranged to progress from simpler to more complex color setups where possible</li>
+                    <li><strong>Ship Date Priority:</strong> All optimizations still respect ship date requirements</li>
+                </ol>
+            `;
+        }
+        
+        // Optimize schedule
+        function optimizeSchedule(jobs) {
+            // Clone jobs to avoid modifying originals
+            const optimizedJobs = JSON.parse(JSON.stringify(jobs));
+            
+            // Group jobs by press
+            const pressBuckets = {};
+            pressTypes.forEach(press => {
+                pressBuckets[press] = optimizedJobs.filter(job => job.press === press);
+            });
+            
+            const prioritizeShipDates = prioritizeShipDatesEl.checked;
+            const groupByDie = groupByDieEl.checked;
+            
+            // Optimize each press separately
+            Object.keys(pressBuckets).forEach(press => {
+                const pressJobs = pressBuckets[press];
+                
+                if (prioritizeShipDates) {
+                    // Group by ship date windows first
+                    const shipDateBuckets = {};
+                    
+                    // Find earliest and latest ship dates
+                    let earliestShip = null;
+                    let latestShip = null;
+                    
+                    pressJobs.forEach(job => {
+                        if (job.shipDateObj) {
+                            if (!earliestShip || job.shipDateObj < earliestShip) {
+                                earliestShip = job.shipDateObj;
+                            }
+                            if (!latestShip || job.shipDateObj > latestShip) {
+                                latestShip = job.shipDateObj;
+                            }
+                        }
+                    });
+                    
+                    // Create buckets for each week (or appropriate time period)
+                    if (earliestShip && latestShip) {
+                        const weekBuckets = {};
+                        let currentDate = new Date(earliestShip);
+                        let bucketIndex = 0;
+                        
+                        while (currentDate <= latestShip) {
+                            const weekKey = `bucket-${bucketIndex}`;
+                            const endDate = new Date(currentDate);
+                            endDate.setDate(endDate.getDate() + 7);
+                            
+                            weekBuckets[weekKey] = {
+                                startDate: new Date(currentDate),
+                                endDate: new Date(endDate),
+                                jobs: []
+                            };
+                            
+                            // Advance 7 days
+                            currentDate.setDate(currentDate.getDate() + 7);
+                            bucketIndex++;
+                        }
+                        
+                        // Add a bucket for jobs with no ship date
+                        weekBuckets['no-date'] = {
+                            startDate: null,
+                            endDate: null,
+                            jobs: []
+                        };
+                        
+                        // Assign jobs to weekly buckets
+                        pressJobs.forEach(job => {
+                            let assigned = false;
+                            
+                            if (job.shipDateObj) {
+                                // Find the appropriate bucket for this ship date
+                                for (const [key, bucket] of Object.entries(weekBuckets)) {
+                                    if (bucket.startDate && bucket.endDate &&
+                                        job.shipDateObj >= bucket.startDate &&
+                                        job.shipDateObj < bucket.endDate) {
+                                        bucket.jobs.push(job);
+                                        assigned = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            // If not assigned to any bucket, put in no-date
+                            if (!assigned) {
+                                weekBuckets['no-date'].jobs.push(job);
+                            }
+                        });
+                        
+                        // Now optimize each bucket
+                        Object.values(weekBuckets).forEach(bucket => {
+                            optimizeBucket(bucket.jobs, groupByDie);
+                        });
+                        
+                        // Replace press jobs with optimized buckets in order
+                        pressBuckets[press] = [];
+                        
+                        // Add buckets in order of date
+                        const bucketKeys = Object.keys(weekBuckets).sort((a, b) => {
+                            if (a === 'no-date') return 1; // No-date goes last
+                            if (b === 'no-date') return -1;
+                            return a.localeCompare(b);
+                        });
+                        
+                        bucketKeys.forEach(key => {
+                            pressBuckets[press].push(...weekBuckets[key].jobs);
+                        });
+                    } else {
+                        // No ship dates, just optimize the press directly
+                        optimizeBucket(pressJobs, groupByDie);
+                    }
+                } else {
+                    // No ship date prioritization, just optimize by die and material
+                    optimizeBucket(pressJobs, groupByDie);
+                }
+            });
+            
+            // Function to optimize a bucket of jobs
+            function optimizeBucket(jobs, groupByDie) {
+                if (groupByDie) {
+                    // Group by die first
+                    const dieBuckets = {};
+                    
+                    jobs.forEach(job => {
+                        const dieKey = job.dieId || 'no-die';
+                        if (!dieBuckets[dieKey]) {
+                            dieBuckets[dieKey] = [];
+                        }
+                        dieBuckets[dieKey].push(job);
+                    });
+                    
+                    // For each die group, sort by material and color complexity
+                    Object.values(dieBuckets).forEach(dieBucket => {
+                        dieBucket.sort((a, b) => {
+                            // First by material
+                            if (a.substrate < b.substrate) return -1;
+                            if (a.substrate > b.substrate) return 1;
+                            
+                            // Then by color complexity (simpler first)
+                            const aPlateCount = parseInt(a.plateCount) || 0;
+                            const bPlateCount = parseInt(b.plateCount) || 0;
+                            return aPlateCount - bPlateCount;
+                        });
+                        
+                        // Mark jobs as optimized
+                        dieBucket.forEach(job => {
+                            job.optimized = true;
+                        });
+                    });
+                    
+                    // Replace jobs with optimized die buckets, sort die buckets by size (largest first)
+                    const sortedDieBuckets = Object.entries(dieBuckets).sort((a, b) => b[1].length - a[1].length);
+                    
+                    jobs.length = 0; // Clear the array
+                    sortedDieBuckets.forEach(([die, dieBucket]) => {
+                        jobs.push(...dieBucket);
+                    });
+                } else {
+                    // No die grouping, just sort by material and color complexity
+                    jobs.sort((a, b) => {
+                        // First by material
+                        if (a.substrate < b.substrate) return -1;
+                        if (a.substrate > b.substrate) return 1;
+                        
+                        // Then by color complexity (simpler first)
+                        const aPlateCount = parseInt(a.plateCount) || 0;
+                        const bPlateCount = parseInt(b.plateCount) || 0;
+                        return aPlateCount - bPlateCount;
+                    });
+                    
+                    // Mark jobs as optimized
+                    jobs.forEach(job => {
+                        job.optimized = true;
+                    });
+                }
+            }
+            
+            // Flatten back to a single array
+            const result = [];
+            Object.values(pressBuckets).forEach(pressJobs => {
+                result.push(...pressJobs);
+            });
+            
+            return result;
+        }
+        
+        // Generate exportable schedule
+        function generateExportSchedule(jobs) {
+            // Sort by press, date, and start time
+            const sortedJobs = [...jobs];
+            sortedJobs.sort((a, b) => {
+                if (a.press !== b.press) {
+                    return a.press.localeCompare(b.press);
+                }
+                if (!a.dateObj || !b.dateObj) return 0;
+                return a.dateObj - b.dateObj;
+            });
+            
+            // Group by press
+            const pressBuckets = {};
+            pressTypes.forEach(press => {
+                pressBuckets[press] = sortedJobs.filter(job => job.press === press);
+            });
+            
+            // Create export lines
+            const lines = [];
+            pressTypes.forEach(press => {
+                const pressJobs = pressBuckets[press];
+                
+                // Add press header
+                lines.push(press);
+                
+                // Add headers
+                lines.push("Date\tStart Time\tDuration\tJob ID\tShip Date\tDie ID\tSubstrate\tPlate Count\tCustomer");
+                
+                // Add jobs
+                pressJobs.forEach(job => {
+                    const fields = [
+                        job.date || '',
+                        job.startTime || '',
+                        job.duration || '',
+                        job.jobId || '',
+                        job.shipmentDate || '',
+                        job.dieId || '',
+                        job.substrate || '',
+                        job.plateCount || '',
+                        job.customer || ''
+                    ];
+                    
+                    lines.push(fields.join('\t'));
+                });
+                
+                // Add empty line between presses
+                lines.push('');
+            });
+            
+            return lines.join('\n');
+        }
+        
+        // Create summary analysis
         function createAnalysisSummary(jobs) {
             const stats = countChangeovers(jobs);
             const changeoverTime = getChangeoverTimes();
@@ -1449,17 +1781,16 @@ Date\tStart Time\tDuration\tJob ID\tShip Date\tNotes\tStatus\tCustomer\tDescript
                 </ul>
                 
                 <h3>Press Distribution</h3>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Press</th>
-                                <th>Jobs</th>
-                                <th>Die Changes</th>
-                                <th>Material Changes</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Press</th>
+                            <th>Jobs</th>
+                            <th>Die Changes</th>
+                            <th>Material Changes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
             `;
             
             // Add row for each press
@@ -1478,9 +1809,8 @@ Date\tStart Time\tDuration\tJob ID\tShip Date\tNotes\tStatus\tCustomer\tDescript
             });
             
             html += `
-                        </tbody>
-                    </table>
-                </div>
+                    </tbody>
+                </table>
                 
                 <h3>Optimization Opportunities</h3>
                 <p>There are potential opportunities to reduce changeover time by reordering jobs to minimize die changes and material waste. Click "Optimize Schedule" to see the optimized version.</p>
@@ -1489,432 +1819,121 @@ Date\tStart Time\tDuration\tJob ID\tShip Date\tNotes\tStatus\tCustomer\tDescript
             return html;
         }
         
-        function createPressSelectors() {
-            // Create press selection checkboxes
-            let html = '<h3>Filter by Press</h3><div style="display: flex; flex-wrap: wrap;">';
+        // Event Handlers
+        analyzeBtnEl.addEventListener('click', () => {
+            const data = inputDataEl.value;
             
-            pressTypes.forEach(press => {
-                html += `
-                    <label class="press-checkbox">
-                        <input type="checkbox" class="press-filter" value="${press}" checked>
-                        ${press}
-                    </label>
-                `;
-            });
-            
-            html += '</div>';
-            pressSelectorsEl.innerHTML = html;
-            
-            // Set initial selected presses
-            selectedPresses = [...pressTypes];
-            
-            // Add event listeners
-            const checkboxes = document.querySelectorAll('.press-filter');
-            checkboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    const press = this.value;
-                    
-                    if (this.checked) {
-                        // Add to selected presses
-                        if (!selectedPresses.includes(press)) {
-                            selectedPresses.push(press);
-                        }
-                    } else {
-                        // Remove from selected presses
-                        const index = selectedPresses.indexOf(press);
-                        if (index !== -1) {
-                            selectedPresses.splice(index, 1);
-                        }
-                    }
-                    
-                    // Update displays
-                    displayOriginalSchedule();
-                    
-                    if (optimizedJobs.length > 0) {
-                        displayOptimizedSchedule();
-                    }
-                });
-            });
-        }
-        
-        function getVisibleJobs(jobs) {
-            return jobs.filter(job => selectedPresses.includes(job.press));
-        }
-        
-        function displayOriginalSchedule() {
-            const visibleJobs = getVisibleJobs(originalJobs);
-            
-            // Sort jobs by press and date
-            const sortedJobs = [...visibleJobs].sort((a, b) => {
-                if (a.press !== b.press) {
-                    return a.press.localeCompare(b.press);
-                }
-                
-                if (a.dateObj && b.dateObj) {
-                    return a.dateObj - b.dateObj;
-                }
-                
-                return 0;
-            });
-            
-            // Create table
-            let html = '';
-            
-            sortedJobs.forEach((job, index) => {
-                // Determine row classes
-                const classes = [];
-                
-                if (job.isUrgent) {
-                    classes.push('urgent');
-                } else if (job.isApproachingDue) {
-                    classes.push('approaching-due');
-                }
-                
-                // Check for changeovers
-                if (index > 0) {
-                    const prevJob = sortedJobs[index-1];
-                    
-                    // Skip if different press
-                    if (prevJob.press === job.press) {
-                        if (prevJob.dieId === job.dieId && prevJob.dieId) {
-                            classes.push('same-die');
-                        }
-                        
-                        if (prevJob.substrate === job.substrate && prevJob.substrate) {
-                            classes.push('same-substrate');
-                        }
-                    }
-                }
-                
-                html += `
-                    <tr class="${classes.join(' ')}">
-                        <td>${job.date || '-'}</td>
-                        <td>${job.startTime || '-'}</td>
-                        <td>${job.duration || '-'}</td>
-                        <td>${job.jobId || '-'}</td>
-                        <td>${job.shipmentDate || '-'}</td>
-                        <td>${job.press || '-'}</td>
-                        <td>${job.status || '-'}</td>
-                        <td>${job.customer || '-'}</td>
-                        <td>${job.dieId || '-'}</td>
-                        <td>${job.substrate || '-'}</td>
-                        <td>${job.plateCount || '-'}</td>
-                    </tr>
-                `;
-            });
-            
-            originalTableEl.querySelector('tbody').innerHTML = html;
-        }
-        
-        function optimizeSchedule(jobs) {
-            // Clone jobs to avoid modifying originals
-            const jobsToOptimize = JSON.parse(JSON.stringify(jobs));
-            
-            // Get optimization parameters
-            const prioritizeShipDates = prioritizeShipDatesEl.checked;
-            const groupByDie = groupByDieEl.checked;
-            
-            // Group jobs by press
-            const pressBatches = {};
-            
-            pressTypes.forEach(press => {
-                pressBatches[press] = jobsToOptimize.filter(job => job.press === press);
-            });
-            
-            // Optimize each press separately
-            Object.keys(pressBatches).forEach(press => {
-                const pressJobs = pressBatches[press];
-                
-                // Sort by ship date if prioritizing ship dates
-                if (prioritizeShipDates) {
-                    pressJobs.sort((a, b) => {
-                        if (a.shipDateObj && b.shipDateObj) {
-                            return a.shipDateObj - b.shipDateObj;
-                        }
-                        return 0;
-                    });
-                }
-                
-                // Group by die ID if enabled
-                if (groupByDie) {
-                    // Group jobs by die ID
-                    const dieGroups = {};
-                    
-                    pressJobs.forEach(job => {
-                        if (job.dieId && job.dieId !== '') {
-                            if (!dieGroups[job.dieId]) {
-                                dieGroups[job.dieId] = [];
-                            }
-                            dieGroups[job.dieId].push(job);
-                        }
-                    });
-                    
-                    // Sort die groups by earliest ship date
-                    const sortedDieGroups = Object.entries(dieGroups).sort(([, jobsA], [, jobsB]) => {
-                        const earliestShipDateA = Math.min(...jobsA.map(job => job.shipDateObj ? job.shipDateObj.getTime() : Infinity));
-                        const earliestShipDateB = Math.min(...jobsB.map(job => job.shipDateObj ? job.shipDateObj.getTime() : Infinity));
-                        return earliestShipDateA - earliestShipDateB;
-                    });
-                    
-                    // Replace press jobs with optimized sequence
-                    pressBatches[press] = [];
-                    
-                    // Add jobs with dies in optimized order
-                    sortedDieGroups.forEach(([dieId, dieJobs]) => {
-                        // Sort by substrate to minimize material changes
-                        dieJobs.sort((a, b) => {
-                            if (a.substrate && b.substrate) {
-                                return a.substrate.localeCompare(b.substrate);
-                            }
-                            return 0;
-                        });
-                        
-                        pressBatches[press] = [...pressBatches[press], ...dieJobs];
-                    });
-                    
-                    // Add jobs without dies
-                    const jobsWithoutDies = pressJobs.filter(job => !job.dieId || job.dieId === '');
-                    if (prioritizeShipDates) {
-                        jobsWithoutDies.sort((a, b) => {
-                            if (a.shipDateObj && b.shipDateObj) {
-                                return a.shipDateObj - b.shipDateObj;
-                            }
-                            return 0;
-                        });
-                    }
-                    pressBatches[press] = [...pressBatches[press], ...jobsWithoutDies];
-                } else {
-                    // Simple optimization by substrate
-                    pressJobs.sort((a, b) => {
-                        if (a.substrate && b.substrate) {
-                            return a.substrate.localeCompare(b.substrate);
-                        }
-                        return 0;
-                    });
-                    pressBatches[press] = pressJobs;
-                }
-                
-                // Mark jobs as optimized
-                pressBatches[press].forEach(job => {
-                    job.optimized = true;
-                });
-            });
-            
-            // Combine all optimized jobs
-            const optimizedJobs = [];
-            Object.values(pressBatches).forEach(batch => {
-                optimizedJobs.push(...batch);
-            });
-            
-            return optimizedJobs;
-        }
-        
-        function displayOptimizedSchedule() {
-            const visibleJobs = getVisibleJobs(optimizedJobs);
-            
-            // Sort jobs by press
-            const sortedJobs = [...visibleJobs].sort((a, b) => {
-                return a.press.localeCompare(b.press);
-            });
-            
-            // Calculate changeovers
-            const originalStats = countChangeovers(getVisibleJobs(originalJobs));
-            const optimizedStats = countChangeovers(sortedJobs);
-            
-            const changeoverTime = getChangeoverTimes();
-            
-            // Calculate savings
-            const originalMinutes = originalStats.totalChangeoverMinutes;
-            const optimizedMinutes = optimizedStats.totalChangeoverMinutes;
-            const savedMinutes = originalMinutes - optimizedMinutes;
-            const savedPercentage = originalMinutes > 0 ? Math.round((savedMinutes / originalMinutes) * 100) : 0;
-            
-            // Display optimization stats
-            let statsHtml = `
-                <div class="success-message">
-                    <h3>Optimization Results</h3>
-                    <p>Optimized schedule reduces changeover time by ${savedMinutes} minutes (${savedPercentage}% reduction).</p>
-                </div>
-                
-                <div class="stats">
-                    <div class="stat-card">
-                        <div>Original Changeover Time</div>
-                        <div class="stat-value">${originalMinutes} min</div>
-                        <small>(${Math.floor(originalMinutes/60)} hours, ${originalMinutes % 60} min)</small>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div>Optimized Changeover Time</div>
-                        <div class="stat-value">${optimizedMinutes} min</div>
-                        <small>(${Math.floor(optimizedMinutes/60)} hours, ${optimizedMinutes % 60} min)</small>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div>Time Saved</div>
-                        <div class="stat-value">${savedMinutes} min</div>
-                        <small>(${Math.floor(savedMinutes/60)} hours, ${savedMinutes % 60} min)</small>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div>Die Changes</div>
-                        <div class="stat-value">${originalStats.dieChanges} → ${optimizedStats.dieChanges}</div>
-                        <small>Reduced by ${originalStats.dieChanges - optimizedStats.dieChanges}</small>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div>Material Changes</div>
-                        <div class="stat-value">${originalStats.materialChanges} → ${optimizedStats.materialChanges}</div>
-                        <small>Reduced by ${originalStats.materialChanges - optimizedStats.materialChanges}</small>
-                    </div>
-                </div>
-                
-                <p>The optimized schedule groups jobs by similar die and material to minimize changeover time while respecting ship dates.</p>
-            `;
-            
-            optimizationStatsEl.innerHTML = statsHtml;
-            
-            // Create table
-            let html = '';
-            
-            sortedJobs.forEach((job, index) => {
-                // Determine row classes
-                const classes = [];
-                
-                if (job.isUrgent) {
-                    classes.push('urgent');
-                } else if (job.isApproachingDue) {
-                    classes.push('approaching-due');
-                }
-                
-                // Check for changeovers
-                if (index > 0) {
-                    const prevJob = sortedJobs[index-1];
-                    
-                    // Skip if different press
-                    if (prevJob.press === job.press) {
-                        if (prevJob.dieId === job.dieId && prevJob.dieId) {
-                            classes.push('same-die');
-                        }
-                        
-                        if (prevJob.substrate === job.substrate && prevJob.substrate) {
-                            classes.push('same-substrate');
-                        }
-                    }
-                }
-                
-                // Add optimized class
-                classes.push('optimized');
-                
-                html += `
-                    <tr class="${classes.join(' ')}">
-                        <td>${job.date || '-'}</td>
-                        <td>${job.startTime || '-'}</td>
-                        <td>${job.duration || '-'}</td>
-                        <td>${job.jobId || '-'}</td>
-                        <td>${job.shipmentDate || '-'}</td>
-                        <td>${job.press || '-'}</td>
-                        <td>${job.status || '-'}</td>
-                        <td>${job.customer || '-'}</td>
-                        <td>${job.dieId || '-'}</td>
-                        <td>${job.substrate || '-'}</td>
-                        <td>${job.plateCount || '-'}</td>
-                    </tr>
-                `;
-            });
-            
-            optimizedTableEl.querySelector('tbody').innerHTML = html;
-            
-            // Create timeline visualization
-            createTimelineVisualization(sortedJobs);
-        }
-        
-        function createTimelineVisualization(jobs) {
-            // Group jobs by press
-            const pressBatches = {};
-            
-            pressTypes.forEach(press => {
-                pressBatches[press] = jobs.filter(job => job.press === press);
-            });
-            
-            // Create timeline HTML
-            let html = '';
-            
-            Object.entries(pressBatches).forEach(([press, pressJobs]) => {
-                if (pressJobs.length === 0) return;
-                
-                html += `<div class="timeline-track">`;
-                html += `<div class="timeline-label">${press}</div>`;
-                
-                // Sort jobs by sequence
-                pressJobs.sort((a, b) => {
-                    // Use their order in the array
-                    return jobs.indexOf(a) - jobs.indexOf(b);
-                });
-                
-                // Calculate total width
-                const totalWidth = 1000; // pixels
-                const totalMinutes = pressJobs.reduce((total, job) => total + (job.durationMinutes || 60), 0);
-                const pixelsPerMinute = totalWidth / Math.max(totalMinutes, 1); // Avoid division by zero
-                
-                // Track current position
-                let position = 0;
-                
-                // Add each job
-                pressJobs.forEach((job, index) => {
-                    // Determine job width (minimum 5px for visibility)
-                    const width = Math.max(5, (job.durationMinutes || 60) * pixelsPerMinute);
-                    
-                    // Determine class
-                    const classes = ['timeline-job'];
-                    
-                    if (job.isUrgent) {
-                        classes.push('urgent');
-                    }
-                    
-                    // Check for changeovers
-                    if (index > 0) {
-                        const prevJob = pressJobs[index-1];
-                        
-                        if (prevJob.dieId === job.dieId && prevJob.dieId) {
-                            classes.push('same-die');
-                        }
-                        
-                        if (prevJob.substrate === job.substrate && prevJob.substrate) {
-                            classes.push('same-substrate');
-                        }
-                    }
-                    
-                    html += `
-                        <div class="${classes.join(' ')}" style="left: ${position}px; width: ${width}px;" 
-                             title="${job.customer} - ${job.jobId} - ${job.dieId || 'No Die'}">
-                            ${job.jobId ? job.jobId.substring(0, 8) : 'Job'}
-                        </div>
-                    `;
-                    
-                    position += width;
-                });
-                
-                html += `</div>`;
-            });
-            
-            // Add timeline scale
-            html += `<div class="timeline-scale">`;
-            
-            // Add markers
-            const numMarkers = 10;
-            for (let i = 0; i <= numMarkers; i++) {
-                const position = (i / numMarkers) * 100;
-                html += `
-                    <div class="timeline-marker" style="left: ${position}%">
-                        ${i}
-                    </div>
-                `;
+            // Validate input first
+            const validation = validateInputData(data);
+            if (!validation.valid) {
+                showParsingStatus(validation.message, true);
+                return;
             }
             
-            html += `</div>`;
+            showParsingStatus("Analyzing schedule data...");
             
-            timelineContainerEl.innerHTML = html;
-        }
+            // Parse data with improved parser
+            try {
+                originalJobs = parseScheduleData(data);
+                
+                if (originalJobs.length === 0) {
+                    showParsingStatus("No valid job data found. Please check your input format.", true);
+                    return;
+                }
+                
+                // Display analysis
+                analysisSummaryEl.innerHTML = createAnalysisSummary(originalJobs);
+                
+                // Create press selectors
+                createPressSelectors();
+                
+                // Display original schedule
+                displayOriginalSchedule();
+                
+                // Show tabs
+                resultTabsEl.style.display = 'flex';
+                
+                // Enable optimize button
+                optimizeBtnEl.disabled = false;
+                
+                showParsingStatus(`Successfully analyzed ${originalJobs.length} jobs from ${pressTypes.length} presses.`);
+            } catch (error) {
+                console.error("Error analyzing data:", error);
+                showParsingStatus(`Error analyzing data: ${error.message}`, true);
+            }
+        });
+        
+        optimizeBtnEl.addEventListener('click', () => {
+            showParsingStatus("Optimizing schedule...");
+            
+            try {
+                // Make a copy of original jobs for reference
+                const jobsCopy = JSON.parse(JSON.stringify(originalJobs));
+                
+                // Optimize schedule
+                optimizedJobs = optimizeSchedule(jobsCopy);
+                
+                // Display optimized schedule
+                displayOptimizedSchedule();
+                
+                // Show optimization stats
+                optimizationStatsEl.style.display = 'block';
+                
+                // Create stats summary
+                createStatsSummary(originalJobs, optimizedJobs);
+                
+                // Enable export button
+                exportBtnEl.disabled = false;
+                
+                // Switch to summary tab
+                document.querySelector('.tab[data-tab="summary"]').click();
+                
+                showParsingStatus("Schedule optimization complete!");
+            } catch (error) {
+                console.error("Error optimizing schedule:", error);
+                showParsingStatus(`Error optimizing schedule: ${error.message}`, true);
+            }
+        });
+        
+        exportBtnEl.addEventListener('click', () => {
+            try {
+                // Generate export data
+                const exportData = generateExportSchedule(optimizedJobs);
+                exportAreaEl.value = exportData;
+                
+                // Copy to clipboard
+                exportAreaEl.style.display = 'block';
+                exportAreaEl.select();
+                document.execCommand('copy');
+                exportAreaEl.style.display = 'none';
+                
+                showParsingStatus("Optimized schedule copied to clipboard!");
+                
+                // Create download link
+                const blob = new Blob([exportData], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'optimized_schedule.txt';
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                console.error("Error exporting schedule:", error);
+                showParsingStatus(`Error exporting schedule: ${error.message}`, true);
+            }
+        });
+        
+        clearBtnEl.addEventListener('click', () => {
+            inputDataEl.value = '';
+            analysisSummaryEl.innerHTML = 'Paste data and click "Analyze Schedule Data" to begin.';
+            optimizationStatsEl.style.display = 'none';
+            resultTabsEl.style.display = 'none';
+            optimizeBtnEl.disabled = true;
+            exportBtnEl.disabled = true;
+            originalJobs = [];
+            optimizedJobs = [];
+            statusMessagesEl.innerHTML = '';
+        });
     </script>
 </body>
 </html>
